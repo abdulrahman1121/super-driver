@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Secrets: never commit these. Use .env.example as the template.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Supabase local dev
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# Source material (download fresh from dol.wa.gov; don't commit large PDFs)
+*.pdf
