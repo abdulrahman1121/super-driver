@@ -7,9 +7,9 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 ### Setup
 - [x] Add Collins to the GitHub repo
 - [x] Choose scaffold options: npm, app at root, `src/`, Tailwind first (shadcn/ui on demand), ESLint + Prettier, Supabase CLI as a dependency wrapped in npm scripts, React Compiler off, classic caching, `AGENTS.md` included
-- [ ] Commit `package-lock.json` and the Node pin (`.nvmrc` + `engines`): files exist and are verified, waiting to be committed
+- [x] Commit `package-lock.json` and the Node pin (`.nvmrc` + `engines`)
 - [ ] Decide who owns which features
-- [ ] Scaffold Next.js + TypeScript + Supabase CLI (`chore/scaffold-nextjs-supabase`): built and verified, not committed yet
+- [ ] Scaffold Next.js + TypeScript + Supabase CLI (`chore/scaffold-nextjs-supabase`): built, verified, committed and pushed; PR to `main` still to open
 - [ ] Both of us set up Docker and run Supabase locally
 - [ ] Finalize the database schema + RLS policies together (`feat/v1-database-schema`)
 
@@ -33,10 +33,10 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - [ ] Mini 2D driving simulation
 
 ## In Progress
-- `chore/scaffold-nextjs-supabase`: scaffold built and checked; waiting on my approval to commit, push and open the PR
+- `chore/scaffold-nextjs-supabase`: scaffold committed and pushed; next is the PR (squash merge) and Collins pulling and running `npm ci`
 
 ## Changelog (done)
-- **2026-11-05**: Built the Next.js + Tailwind + ESLint/Prettier + Supabase CLI scaffold on `chore/scaffold-nextjs-supabase`. Checked it with a fresh `npm ci`, build, lint and format check, and saw `EBADENGINE` on a wrong Node version. Not committed yet.
+- **2026-11-05**: Built the Next.js + Tailwind + ESLint/Prettier + Supabase CLI scaffold on `chore/scaffold-nextjs-supabase`. Checked it with a fresh `npm ci`, build, lint and format check, and saw `EBADENGINE` on a wrong Node version. Committed as five commits and pushed the branch, plus `main` with the ignore-file fix.
 - **2026-11-03**: Fixed the ignore file, which had been committed as `gitignore` without the dot (so git ignored nothing). Invited Collins and he cloned the repo. Picked npm, app at the repo root, and Node 24. Added `.nvmrc` and `.npmrc` to pin Node.
 - **2026-11-03**: Created the GitHub repo and pushed the first commit (`.gitignore`, `CLAUDE.md`, `LOG.md`). Renamed the platform to SuperDriver.
 - **2026-11-03**: Finished planning. Picked the stack, content storage, auth approach, verification pipeline and problem reporting. Named the platform (later renamed to SuperDriver).
