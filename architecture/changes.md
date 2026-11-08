@@ -12,7 +12,8 @@ Newest first. Each entry says what changed, why, and where the decision is recor
 
 - Choices for a question live in a separate `choices` table instead of a `jsonb` column on `questions`. Status: decided (still **planned**, not built).
 - Why: integrity matters, and the correct answer must not be readable in the browser's network tab. A `jsonb` column cannot hide one field inside it.
-- How the answer is hidden is a **pending decision**: option A (`is_correct` on `choices`, column-level privileges, graded by a server-side function) is chosen but not yet confirmed as final. See the practice test flow in `data-flow.md`.
+- How the answer is hidden: decided (option A, still **planned**): `is_correct` and `explanation` live on `choices`, the browser roles can only select safe columns, and a server-side function grades. It was tested on throwaway tables against local Supabase on 2026-11-07, and no leak was found through REST, SQL, `pg_stats` or Realtime. See the practice test flow in `data-flow.md` and the findings in `CLAUDE.md`.
+- Also changed that day: `enable_anonymous_sign_ins` is now `true` in `supabase/config.toml`, so guest sign-in works locally (**built**, verified with a real sign-in).
 - Decisions log: see the 2026-11-07 `choices` row in `CLAUDE.md`.
 
 ## 2026-11-05: Scaffold and local Supabase

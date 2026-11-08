@@ -69,6 +69,7 @@ sequenceDiagram
 ```
 
 **Failure notes:**
+
 - If sign-in itself fails, saves cannot be attributed to a user, so they wait in the queue.
 - Clearing browser data deletes both the Supabase session and the queue, so that guest's progress is lost (accepted for V1).
 - If the queue and Supabase disagree, the merge keeps the best result per item. The same merge function is reused for V2 account merging.
@@ -106,7 +107,9 @@ sequenceDiagram
   DB-->>B: Score, pass or fail, and the explanations
 ```
 
-**Pending decision, answer visibility:** the correct answer must not be readable in the browser, so grading has to happen on the server. Whether the key lives in a column the client cannot select or in a separate key table is not yet decided. The "check your understanding" questions inside lessons need the same server-side check, one question at a time.
+**Answer visibility (decided, option A):** the correct answer must not be readable in the browser, so grading happens on the server. `is_correct` and `explanation` sit on `choices`, but the browser roles can only select `id`, `question_id` and `body`, and a `SECURITY DEFINER` function does the grading. This was tested against local Supabase and held up.
+
+**Pending design, per-choice checking:** the "check your understanding" questions inside lessons need a check one question at a time. But a per-choice check is an answer-key oracle: anyone can loop over the choice ids and learn which is correct (shown in testing). That is acceptable in lessons, but the practice test must grade the whole submission at once, and test questions need protection from per-choice checking. How is not designed yet.
 
 **Failure notes:** if submitting fails, answers stay in the browser and the learner can retry. If the timer config is missing, a default must be used. A test with fewer than 40 published questions in the pool must fail clearly instead of returning a short test.
 
@@ -128,6 +131,7 @@ sequenceDiagram
 ```
 
 **Failure notes:**
+
 - If GitHub or email is down, the report is still safely stored in the table, and the function must be able to retry later without opening a duplicate issue.
 - The GitHub token (fine-grained, Issues write only) and the email key live only as Edge Function secrets, never in the browser.
 - Users can insert reports but can never read anyone else's.
@@ -175,7 +179,9 @@ erDiagram
   choices {
     text id PK "stable, progress points at it"
     text question_id FK
-    text body
+    text body "browser can read"
+    bool is_correct "browser cannot read"
+    text explanation "browser cannot read"
   }
   content_reviews {
     text verdict
@@ -186,7 +192,8 @@ erDiagram
 ```
 
 **Open points (from `CLAUDE.md`):**
+
 - How questions attach to lessons and sections is undecided, so that edge is not drawn.
-- Where the correct-answer flag lives is **pending decision** and is intentionally not on `choices` above.
+- `is_correct` and `explanation` are on `choices` but have no browser access (column-level privileges, option A). Whether `choices` carries its own published status or follows its question's is not decided.
 - The progress table name and shape are placeholders. The scenario data model is undecided and not shown.
 - Progress rows reference stable text ids and choice ids, never array positions.
