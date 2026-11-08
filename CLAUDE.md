@@ -116,6 +116,9 @@ Config notes:
 - Not reproduced: a port-conflict failure. Holding port 54322 with a dummy listener (loopback and all interfaces) did NOT stop `db:start` on macOS, so we do not know what that error looks like.
 - Not yet tested: Collins's machine.
 
+## Architecture docs
+`architecture/` holds Mermaid diagrams of the system overview, key data flows, and the draft data model, plus `changes.md`, a dated log of architecture changes. Update it in the same commit/PR as any decision or code that changes data flow, mark things `built` or `planned`, and check the diagrams against the real code and schema. Start at `architecture/README.md`.
+
 ## Commands
 - `npm ci`: install exactly what the lockfile says (use this after cloning). `nvm use` first.
 - `npm run dev` / `build` / `start`: Next.js.
@@ -172,3 +175,4 @@ Config notes:
 - 2026-11-05: Settled the remaining scaffold options (Tailwind first with shadcn/ui on demand, ESLint + Prettier, Supabase CLI as a dependency, `src/`, React Compiler off, classic caching, `AGENTS.md`). Built the scaffold on `chore/scaffold-nextjs-supabase` (generated in a temp dir, then copied in so our `.gitignore` was not overwritten). First install hit an npm registry 404 for `electron-to-chromium@1.5.478` (published seconds earlier; resolved within minutes, no workaround needed). Verified: fresh `npm ci`, build, lint, `format:check`, `EBADENGINE` on a wrong Node. Committed as five commits; pushed `main` (ignore-file fix) and the branch. Note: `npm ci` leaves a ~600 MB gitignored `node_modules/` and never edits the lockfile.
 - 2026-11-07: Started local Supabase for the first time (`npm run db:start`) and verified Postgres, REST, container health, and data persistence across stop/start. Found `enable_anonymous_sign_ins = false` in `config.toml` (must be enabled for guest mode). Could not reproduce a port-conflict failure on macOS. Abdulrahman set the GitHub repo to squash-only merging after PR #1 landed as a merge commit by accident.
 - 2026-11-07: PR #1 reviewed and merged by Abdulrahman. It landed as a merge commit instead of a squash, so `main` has the six branch commits plus the merge commit. Left as is (no history rewrite). Local branch deleted with `git branch -D`; remote branch already deleted by GitHub.
+- 2026-11-07: Added the `architecture/` folder (overview, five flows, draft data model, change log) after Abdulrahman added a global rule requiring one in every project. Diagrams checked with a real Mermaid renderer (6 of 6 render; a deliberately broken one is rejected). Only the dev environment is marked built. Also: Abdulrahman rejected `jsonb` for answer choices because integrity matters and the correct answer must not be visible in the browser, and leans to a separate `choices` table; the second, final decision and how the answer is hidden are still pending.
