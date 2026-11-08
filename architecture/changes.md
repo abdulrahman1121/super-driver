@@ -2,6 +2,13 @@
 
 Newest first. Each entry says what changed, why, and where the decision is recorded.
 
+## 2026-11-07: Browser roles locked out of new objects by default (built)
+
+- First migration (`20261108050310_secure_default_privileges.sql`): new tables, sequences and functions in `public` grant nothing to `anon` or `authenticated`. Plus a pgTAP guard test (`npm run db:test`) that fails if a table lacks RLS, an answer column is readable by the browser, or a function is callable without being allow-listed.
+- Why: Supabase's defaults grant the browser roles everything on new tables, so an anonymous visitor could read and delete rows. A forgotten grant should fail closed.
+- Verified: the guard failed 4 of 8 checks before the migration and passed after it; four deliberate mistakes were each caught. See section 7 of `data-flow.md`.
+- Decisions log: see the 2026-11-07 secure-by-default row in `CLAUDE.md`.
+
 ## 2026-11-07: Architecture folder created
 
 - Added `architecture/` with the overview, user flows, and a draft data model.
