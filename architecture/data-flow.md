@@ -137,7 +137,7 @@ sequenceDiagram
 ```mermaid
 erDiagram
   lessons ||--o{ sections : contains
-  questions ||--|{ choices : "has (separate table, leaning)"
+  questions ||--|{ choices : "has (separate table, decided)"
   questions ||--o{ content_reviews : "reviewed by"
   lessons ||--o{ content_reviews : "reviewed by"
   progress {

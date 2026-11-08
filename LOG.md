@@ -52,6 +52,7 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - **2026-11-05: ESLint + Prettier for linting and formatting.** It's what `create-next-app` and the Next.js docs assume, and `eslint-config-next` catches framework mistakes while I'm learning React. I considered Biome (one fast tool, but no Next.js-specific rules) and mixing Biome with ESLint/Prettier (two formatters would rewrite each other's output). Prettier settings live in the repo so Collins and I format identically.
 - **2026-11-05: Supabase CLI as a project dependency.** Its version is pinned in `package-lock.json`, so Collins and I run identical `supabase start`, migration and type-generation behavior, and a fresh clone only needs `npm ci` plus Docker. The longer `npx supabase ...` commands get wrapped in `npm run` scripts (like `db:start` and `db:types`).
 - **2026-11-03: Pin Node 24.** It's the current LTS and what I already run. `.nvmrc`, `engines` and `engine-strict` make a wrong Node version fail at install instead of causing weird bugs for Collins or me.
+- **2026-11-07: Answer choices get their own `choices` table, not a `jsonb` column.** I first leaned toward `jsonb` because 40 questions seemed small, but 40 is only the size of one test, and the pool will be several hundred questions. What decided it: integrity matters to me, and I don't want users reading the correct answer in the network tab. A `jsonb` column can't hide a single field inside it, while a table can. The cost is a join on every question read.
 - **2026-11-07: Feature split.** Collins only builds report-a-problem in V1 and I build everything else. For V2, Collins may take the sign-in nudge and the driving simulation. Report-a-problem is the most self-contained piece, so we shouldn't collide in the code. I'm accepting that V1 is lopsided on my side, that his table depends on my content schema, and that his V2 nudge can't be tested until my Google sign-in works. This replaces the earlier "split feature by feature so both learn the full stack" plan.
 - **2026-11-03: Supabase tables for content.** Typed files or MDX would have been faster for V1, but I need a review workflow with statuses, and a database is the natural home for that. It also makes the random 40-question test and V2 progress easy.
 - **2026-11-03: Supabase Auth, not Clerk.** One vendor, and RLS policies can use the logged-in user's ID directly.
@@ -64,7 +65,7 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 ### Open questions
 - How do we draw scenario puzzles in V1 (plain SVG, SVG + CSS, SVG + Motion)?
 - Should the reviewer get the whole PDF or search chunks of it?
-- Store question choices as JSON or as their own table?
+- How do I hide the correct answer from the browser? (leaning option A: `is_correct` on `choices`, column-level privileges, graded by a server-side function)
 - How do I approve content: Supabase dashboard or a small admin page?
 - Which AI model runs the reviewer, and where (script or Edge Function)?
 - Which email service?
