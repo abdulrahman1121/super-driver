@@ -8,7 +8,7 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - [x] Add Collins to the GitHub repo
 - [x] Choose scaffold options: npm, app at root, `src/`, Tailwind first (shadcn/ui on demand), ESLint + Prettier, Supabase CLI as a dependency wrapped in npm scripts, React Compiler off, classic caching, `AGENTS.md` included
 - [x] Commit `package-lock.json` and the Node pin (`.nvmrc` + `engines`)
-- [ ] Decide who owns which features
+- [x] Decide who owns which features: Collins takes report-a-problem in V1; I take everything else. V2 (tentative): Collins takes the nudge and the driving simulation
 - [x] Scaffold Next.js + TypeScript + Supabase CLI (`chore/scaffold-nextjs-supabase`): merged in PR #1
 - [ ] Both of us set up Docker and run Supabase locally (me: done and verified; Collins: still to do)
 - [ ] Finalize the database schema + RLS policies together (`feat/v1-database-schema`)
@@ -33,7 +33,7 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - [ ] Mini 2D driving simulation
 
 ## In Progress
-- Local Supabase works on my machine. Waiting on Collins to run it too, then deciding the feature split and the database schema (`feat/v1-database-schema`)
+- Local Supabase works on my machine. Waiting on Collins to run it too. Feature split is decided, so next is the database schema (`feat/v1-database-schema`), which Collins's `problem_reports` table depends on
 
 ## Changelog (done)
 - **2026-11-07**: Started local Supabase with `npm run db:start`. Postgres, the REST API and all containers were healthy, and data survived a stop and start. Switched the GitHub repo to squash-only merging. Found that anonymous sign-ins are off in `config.toml`, so I need to turn them on in the schema work.
@@ -52,6 +52,7 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - **2026-11-05: ESLint + Prettier for linting and formatting.** It's what `create-next-app` and the Next.js docs assume, and `eslint-config-next` catches framework mistakes while I'm learning React. I considered Biome (one fast tool, but no Next.js-specific rules) and mixing Biome with ESLint/Prettier (two formatters would rewrite each other's output). Prettier settings live in the repo so Collins and I format identically.
 - **2026-11-05: Supabase CLI as a project dependency.** Its version is pinned in `package-lock.json`, so Collins and I run identical `supabase start`, migration and type-generation behavior, and a fresh clone only needs `npm ci` plus Docker. The longer `npx supabase ...` commands get wrapped in `npm run` scripts (like `db:start` and `db:types`).
 - **2026-11-03: Pin Node 24.** It's the current LTS and what I already run. `.nvmrc`, `engines` and `engine-strict` make a wrong Node version fail at install instead of causing weird bugs for Collins or me.
+- **2026-11-07: Feature split.** Collins only builds report-a-problem in V1 and I build everything else. For V2, Collins may take the sign-in nudge and the driving simulation. Report-a-problem is the most self-contained piece, so we shouldn't collide in the code. I'm accepting that V1 is lopsided on my side, that his table depends on my content schema, and that his V2 nudge can't be tested until my Google sign-in works. This replaces the earlier "split feature by feature so both learn the full stack" plan.
 - **2026-11-03: Supabase tables for content.** Typed files or MDX would have been faster for V1, but I need a review workflow with statuses, and a database is the natural home for that. It also makes the random 40-question test and V2 progress easy.
 - **2026-11-03: Supabase Auth, not Clerk.** One vendor, and RLS policies can use the logged-in user's ID directly.
 - **2026-11-03: Anonymous sign-ins for guests.** Guests are real users from the start, so when they link Google in V2, their progress stays attached to the same ID.
@@ -61,7 +62,6 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - **2026-11-03: V1 is guest-only.** The sign-in nudge waits for V2, because a nudge without a working sign-in would be a broken promise.
 
 ### Open questions
-- Who builds which features?
 - How do we draw scenario puzzles in V1 (plain SVG, SVG + CSS, SVG + Motion)?
 - Should the reviewer get the whole PDF or search chunks of it?
 - Store question choices as JSON or as their own table?
