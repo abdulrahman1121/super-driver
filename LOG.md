@@ -9,8 +9,8 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - [x] Choose scaffold options: npm, app at root, `src/`, Tailwind first (shadcn/ui on demand), ESLint + Prettier, Supabase CLI as a dependency wrapped in npm scripts, React Compiler off, classic caching, `AGENTS.md` included
 - [x] Commit `package-lock.json` and the Node pin (`.nvmrc` + `engines`)
 - [ ] Decide who owns which features
-- [ ] Scaffold Next.js + TypeScript + Supabase CLI (`chore/scaffold-nextjs-supabase`): built, verified, committed and pushed; PR to `main` still to open
-- [ ] Both of us set up Docker and run Supabase locally
+- [x] Scaffold Next.js + TypeScript + Supabase CLI (`chore/scaffold-nextjs-supabase`): merged in PR #1
+- [ ] Both of us set up Docker and run Supabase locally (me: done and verified; Collins: still to do)
 - [ ] Finalize the database schema + RLS policies together (`feat/v1-database-schema`)
 
 ### V1 (WA only, guest-only, ~2 days)
@@ -33,9 +33,11 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - [ ] Mini 2D driving simulation
 
 ## In Progress
-- `chore/scaffold-nextjs-supabase`: scaffold committed and pushed; next is the PR (squash merge) and Collins pulling and running `npm ci`
+- Local Supabase works on my machine. Waiting on Collins to run it too, then deciding the feature split and the database schema (`feat/v1-database-schema`)
 
 ## Changelog (done)
+- **2026-11-07**: Started local Supabase with `npm run db:start`. Postgres, the REST API and all containers were healthy, and data survived a stop and start. Switched the GitHub repo to squash-only merging. Found that anonymous sign-ins are off in `config.toml`, so I need to turn them on in the schema work.
+- **2026-11-07**: Reviewed and merged PR #1 (the scaffold) into `main`. It went in as a merge commit, not a squash, so I should limit the repo to squash merging on GitHub. Deleted the local branch.
 - **2026-11-05**: Built the Next.js + Tailwind + ESLint/Prettier + Supabase CLI scaffold on `chore/scaffold-nextjs-supabase`. Checked it with a fresh `npm ci`, build, lint and format check, and saw `EBADENGINE` on a wrong Node version. Committed as five commits and pushed the branch, plus `main` with the ignore-file fix.
 - **2026-11-03**: Fixed the ignore file, which had been committed as `gitignore` without the dot (so git ignored nothing). Invited Collins and he cloned the repo. Picked npm, app at the repo root, and Node 24. Added `.nvmrc` and `.npmrc` to pin Node.
 - **2026-11-03**: Created the GitHub repo and pushed the first commit (`.gitignore`, `CLAUDE.md`, `LOG.md`). Renamed the platform to SuperDriver.
@@ -70,6 +72,9 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 ## Reflections & Lessons Learned
 - **A tool's `--yes` flag makes decisions for you.** `create-next-app --yes` quietly turned on Cache Components even though I had chosen classic caching. I only caught it by reading the generated `next.config.ts`. After any generator runs, read what it wrote and compare it with what you decided.
 - **A lockfile pins versions, but it can't fix the registry.** My first install failed with a 404 for a package version that had been published seconds earlier, because the registry's metadata was ahead of its file storage. Waiting a few minutes fixed it. The lockfile did its job on the next try.
+- **A test that can't fail proves nothing.** I tried to simulate a port conflict by holding the database port with a dummy process, but Supabase started anyway, because Docker Desktop on macOS forwards ports in a way that a plain listener doesn't block. So I don't know what that failure looks like, and I shouldn't claim I handled it.
+- **A default config can quietly contradict a decision.** I decided on anonymous guest sign-ins, but Supabase ships with them turned off. Reading `config.toml` after the first start caught it before any code depended on it.
+- **A merge button has a default, and it might not be the one you want.** I wanted squash merges but GitHub's default created a merge commit. A setting that allows only squash merging removes the chance to pick wrong.
 - **A guard you've never seen fail isn't proven.** `engine-strict` read `false` until `package.json` existed, and only a deliberately impossible `engines` value showed `EBADENGINE` actually blocking an install.
 - **Where you put a check matters as much as the check itself.** Reviewing content on every page view sounded safe, but it would have shown users AI-edited text nobody verified and made answers change between visits. Reviewing once before publishing gives the same protection without the latency or cost.
 - **A hash is a content fingerprint.** Any tiny edit changes it, which makes it a cheap way to know whether something needs re-reviewing.

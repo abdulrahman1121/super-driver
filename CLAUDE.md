@@ -28,7 +28,8 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 ## Repository
 
 - Name: `super-driver`
-- Current branch: `chore/scaffold-nextjs-supabase` (scaffold committed and pushed, PR not yet opened or merged); `main` holds docs only
+- Current branch: `main`. The scaffold branch was merged via PR #1 (as a merge commit, not a squash) and deleted locally and on the remote
+- GitHub is set to squash-only merging (changed by Abdulrahman on 2026-11-07), so `main` keeps one commit per feature from now on
 - Branching: one branch per big addition, `type/short-description` (Conventional Commit types), merged into `main` after review. `main` must always work.
 - Commits: Conventional Commits; never commit without explicit user approval of the changes and the message.
 - Secrets: never commit `.env*`. Use `.env.example` templates.
@@ -92,7 +93,7 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 - [ ] Mini top-down 2D driving simulation (Rive + canvas, TBD)
 
 ## Current state
-Planning complete and the scaffold exists on branch `chore/scaffold-nextjs-supabase`, committed (5 commits) and pushed to `origin`. `main` has the docs (`762ef1d`) plus the ignore-file fix (`be607e4`), also pushed. Collins has been invited and has cloned the repo; he must pull the `.gitignore` fix.
+Planning complete and the scaffold is merged into `main` (PR #1, merge commit `e5036e5`, 2026-11-07). No schema, content, or feature code yet. Collins has been invited and has cloned the repo; he must pull the `.gitignore` fix.
 
 Scaffold contents (verified 2026-11-05): Next.js 16.4.5 + React 19 + TypeScript + Tailwind v4, App Router, `src/` directory, import alias `@/*`, ESLint (`eslint-config-next`) + Prettier (`eslint-config-prettier` last in the ESLint config), Supabase CLI 3.0.0 as a dev dependency with `supabase/` initialized (`supabase init`; no migrations yet), `.env.example`, `AGENTS.md` (imported at the top of this file). `package-lock.json` is committed; fresh `npm ci` + `npm run build` + lint + `format:check` all pass.
 
@@ -102,7 +103,18 @@ Config notes:
 - React Compiler is off.
 - `.prettierignore` skips `CLAUDE.md` and `LOG.md` (Prettier would reformat tables and wrapping).
 - Known, unresolved: `@types/node` is `^20` while the runtime is Node 24; `npm audit` reports 8 moderate issues, all `minimatch` inside the ESLint/typescript-eslint dev chain (the suggested `--force` fix downgrades `eslint-config-next`, so it was not applied).
-- Not yet done: Docker + `npm run db:start` has not been run; `db:types` writes to `src/lib/database.types.ts`, which does not exist until the schema does.
+- `db:types` writes to `src/lib/database.types.ts`, which does not exist until the schema does.
+
+## Local Supabase (verified 2026-11-07, Abdulrahman's machine)
+- `npm run db:start` works with Docker 29.9.2 on macOS (Apple silicon). First run pulls ~12 images (a few minutes); later starts are fast. Postgres 17.11, 12 containers, all healthy.
+- Ports: API 54321, DB 54322, Studio 54323, Mailpit 54324. `project_id` in `supabase/config.toml` is `SuperDriver`, so containers are named `supabase_*_SuperDriver` (use that name with `docker exec`).
+- Keys and URLs come from `npm run db:status`. The local keys are the public demo values; copy them into `.env.local` (gitignored), never into committed files.
+- The `no files matched pattern: supabase/seed.sql` warning is expected until we add a seed file.
+- Data survives `db:stop` then `db:start` (a table created before the stop was still there after; stop takes a backup). Not tested: what wipes it besides `db:reset`.
+- `status` on a stopped stack prints a JSON `StatusDbInspectError` (no such container). That means "not running", not a broken setup.
+- **TODO for the schema/auth branch:** `enable_anonymous_sign_ins = false` in `supabase/config.toml` (line ~179). V1 guest mode depends on anonymous sign-ins, so it must be set to `true`.
+- Not reproduced: a port-conflict failure. Holding port 54322 with a dummy listener (loopback and all interfaces) did NOT stop `db:start` on macOS, so we do not know what that error looks like.
+- Not yet tested: Collins's machine.
 
 ## Commands
 - `npm ci`: install exactly what the lockfile says (use this after cloning). `nvm use` first.
@@ -114,8 +126,8 @@ Config notes:
 1. ~~Fix the `gitignore` → `.gitignore` filename~~ Done (`be607e4`).
 2. ~~Add Collins to the GitHub repo~~ Done: invited and cloned.
 3. ~~Decide the scaffold options~~ Done. Still to decide: the feature split between Abdulrahman and Collins.
-4. Branch `chore/scaffold-nextjs-supabase`: scaffold committed and pushed; next is opening the PR (squash merge), then deleting the branch locally with `git branch -D`. Collins should pull `main`, `nvm use`, and run `npm ci`.
-5. Both developers set up Docker and run Supabase locally (`npm run db:start`).
+4. ~~Branch `chore/scaffold-nextjs-supabase`~~ Merged (PR #1). Collins should pull `main`, `nvm use`, and run `npm ci`.
+5. ~~Abdulrahman: Docker + local Supabase~~ Done and verified (see "Local Supabase"). Collins still needs to run `npm run db:start` on his machine.
 6. Branch `feat/v1-database-schema`: finalize the content, review, progress, and report tables + RLS (this is the shared contract; both devs agree before parallel work).
 
 ## Open decisions
@@ -158,3 +170,5 @@ Config notes:
 - 2026-11-03: Created the GitHub repo and pushed the first commit (`docs: initialize repo with project plan, build log, and gitignore`). Platform renamed from SuperDrive to SuperDriver; docs updated to match (repo name stays `super-driver`). Spotted that the ignore file was committed as `gitignore` without the dot.
 - 2026-11-03: Fixed the ignore file name (`be607e4`). Collins invited and cloned the repo. Chose npm as the package manager, app at the repo root, and Node 24. Added `.nvmrc` and `.npmrc`.
 - 2026-11-05: Settled the remaining scaffold options (Tailwind first with shadcn/ui on demand, ESLint + Prettier, Supabase CLI as a dependency, `src/`, React Compiler off, classic caching, `AGENTS.md`). Built the scaffold on `chore/scaffold-nextjs-supabase` (generated in a temp dir, then copied in so our `.gitignore` was not overwritten). First install hit an npm registry 404 for `electron-to-chromium@1.5.478` (published seconds earlier; resolved within minutes, no workaround needed). Verified: fresh `npm ci`, build, lint, `format:check`, `EBADENGINE` on a wrong Node. Committed as five commits; pushed `main` (ignore-file fix) and the branch. Note: `npm ci` leaves a ~600 MB gitignored `node_modules/` and never edits the lockfile.
+- 2026-11-07: Started local Supabase for the first time (`npm run db:start`) and verified Postgres, REST, container health, and data persistence across stop/start. Found `enable_anonymous_sign_ins = false` in `config.toml` (must be enabled for guest mode). Could not reproduce a port-conflict failure on macOS. Abdulrahman set the GitHub repo to squash-only merging after PR #1 landed as a merge commit by accident.
+- 2026-11-07: PR #1 reviewed and merged by Abdulrahman. It landed as a merge commit instead of a squash, so `main` has the six branch commits plus the merge commit. Left as is (no history rewrite). Local branch deleted with `git branch -D`; remote branch already deleted by GitHub.
