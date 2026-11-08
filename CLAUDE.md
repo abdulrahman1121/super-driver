@@ -112,9 +112,31 @@ Config notes:
 - The `no files matched pattern: supabase/seed.sql` warning is expected until we add a seed file.
 - Data survives `db:stop` then `db:start` (a table created before the stop was still there after; stop takes a backup). Not tested: what wipes it besides `db:reset`.
 - `status` on a stopped stack prints a JSON `StatusDbInspectError` (no such container). That means "not running", not a broken setup.
-- **TODO for the schema/auth branch:** `enable_anonymous_sign_ins = false` in `supabase/config.toml` (line ~179). V1 guest mode depends on anonymous sign-ins, so it must be set to `true`.
+- Anonymous sign-ins: `enable_anonymous_sign_ins` is now `true` in `supabase/config.toml` (it was `false`; V1 guest mode needs it). Verified with a real `POST /auth/v1/signup`: the token has `role: authenticated`, `is_anonymous: true`. So a guest uses the `authenticated` role, and privileges granted to `authenticated` apply to guests. Not tested: the old `false` value's error, and CAPTCHA.
 - Not reproduced: a port-conflict failure. Holding port 54322 with a dummy listener (loopback and all interfaces) did NOT stop `db:start` on macOS, so we do not know what that error looks like.
 - Not yet tested: Collins's machine.
+
+## Hiding the correct answer: option A, verified findings (2026-11-07)
+Design (final): answers live in a separate `choices` table. The browser roles (`anon`, `authenticated`) get `SELECT` only on safe columns (`id`, `question_id`, `body`). `is_correct`, `explanation`, and `status` are not granted. RLS (published-only) controls rows; column privileges control columns; both are needed. Grading runs in a `SECURITY DEFINER` function with `set search_path = ''`.
+
+Tested on throwaway tables (since dropped) against local Supabase, as a visitor (`anon` key) and as a guest (real anonymous JWT):
+- **Baseline is unsafe:** a new table in `public` grants ALL privileges to `anon` and `authenticated` with RLS off. An anonymous visitor read every column and deleted a row.
+- **Protected, all refused (42501):** `select=*`, selecting `is_correct`, filtering on it (`?is_correct=eq.true`), sorting by it, filtering on `explanation`, and all writes. Same via SQL as each role: whole-row reference, `to_jsonb(row)`, `WHERE`, `EXISTS`, aggregates, `JOIN`, `GROUP BY`, `ORDER BY`. A control query on safe columns worked each time.
+- **No side channels found:** `pg_stats` shows restricted roles nothing; Realtime pushed only granted columns and sent no event for a draft row; a column added later is hidden by default; roles cannot create objects in `public`; an RLS policy that reads an ungranted column (`status`) works. `service_role` still reads everything (server only).
+- **Detectable mistake:** the error hint says "GRANT SELECT ON table TO authenticated", which reopens the leak. A guard query over `information_schema.column_privileges` flagged it. It becomes an automated test with the real schema.
+- **Secure-by-default (tested in a rolled-back transaction, not applied):** `ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated` makes new tables grant nothing. For functions, a schema-scoped revoke is NOT enough because `PUBLIC` keeps EXECUTE; the global form (`ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`) is needed. Existing default privileges were unchanged after the rollback.
+
+Rules that follow:
+1. Every table: enable RLS, `REVOKE ALL` from `anon, authenticated`, then grant only the columns and operations needed.
+2. Never grant table-wide `SELECT` on `choices`. Ignore the error hint. Keep `choices` out of the `supabase_realtime` publication.
+3. Every function: `REVOKE EXECUTE ... FROM public, anon, authenticated`, then grant explicitly (new functions are executable by everyone by default, including `anon`).
+
+Not verified, gaps:
+- `pg_graphql` is not enabled locally, so GraphQL was not tested. Retest on the hosted project if it is enabled there.
+- Realtime was tested only as a guest (`authenticated`), not as `anon`.
+- Hosted Supabase may have different default grants than local. Verify there before launch.
+- The public API root (`/rest/v1/`) lists table and column names (not values) to anyone, including `is_correct`.
+- **Design constraint:** a per-choice check function is an answer-key oracle (a guest looped over the ids and learned the correct one). Fine for lesson checks; the practice test must grade the whole submission at once, and test questions need protection from per-choice checking. Not designed yet.
 
 ## Architecture docs
 `architecture/` holds Mermaid diagrams of the system overview, key data flows, and the draft data model, plus `changes.md`, a dated log of architecture changes. Update it in the same commit/PR as any decision or code that changes data flow, mark things `built` or `planned`, and check the diagrams against the real code and schema. Start at `architecture/README.md`.
@@ -137,7 +159,8 @@ Config notes:
 - Scaffold options (decided: npm, app at root, Node 24, Tailwind with shadcn/ui added on demand, ESLint + Prettier, Supabase CLI as a project dependency). All scaffold options are settled.
 - Scenario puzzle rendering for V1 (plain SVG / SVG + CSS transitions / SVG + Motion).
 - Grounding approach for the reviewer (send the whole PDF/chapter vs. chunked search stored in Supabase).
-- How the correct answer is hidden from the browser. Chosen so far: option A (`is_correct` on `choices` with column-level privileges, graded by a server-side function), awaiting the final confirmation.
+- Secure-by-default database privileges: whether migrations should change the default privileges so new tables and functions grant nothing to `anon`/`authenticated` (see "Hiding the correct answer"). Tested in a rolled-back transaction, not applied.
+- How the practice test grades without letting per-choice checks reveal the answer key.
 - Scenario data model.
 - How the human approval step is done (Supabase dashboard vs. a small admin page).
 - Where the reviewer runs (local script vs. Edge Function) and which AI model/API.
@@ -167,6 +190,7 @@ Config notes:
 | 2026-11-05 | Classic caching (Cache Components off) | Matches the static generation + ISR plan; far more documentation. `create-next-app --yes` enabled it by default, so it was removed from `next.config.ts` |
 | 2026-11-05 | Include `AGENTS.md`, imported from `CLAUDE.md` with `@AGENTS.md` | Next.js's agent guidance stays in its own file; project rules stay in `CLAUDE.md` |
 | 2026-11-07 | Answer choices in a separate `choices` table (over a `jsonb` column on `questions`) | Integrity matters, and the correct answer must not be visible in the browser's network tab. A `jsonb` column cannot hide one field, since the flag sits inside the JSON the client reads. A table allows column-level privileges and database-enforced rules. Costs: a join on every question read, and the content hash and the published-only RLS policy must cover two tables |
+| 2026-11-07 | Hide answers with option A: `is_correct` and `explanation` on `choices`, browser roles get column-level `SELECT` on safe columns only, graded by a `SECURITY DEFINER` function (over a separate answer-key table, or a view without the flag) | One table, and the database itself refuses the hidden columns. Verified against local Supabase (REST, SQL, Realtime; see "Hiding the correct answer"). Costs: `select *` fails from the browser so queries must list columns; a teammate granting table-wide `SELECT` reopens the leak (guard test needed); at-least-one-correct needs a trigger or publish-time check |
 | 2026-11-03 | Pin Node 24 (over 22) | Current LTS and what Abdulrahman already runs; Next.js needs >=20.9. Enforced with `.nvmrc`, `engines`, and `engine-strict=true` so a wrong Node fails at install |
 
 ## Progress log
@@ -177,3 +201,4 @@ Config notes:
 - 2026-11-07: Started local Supabase for the first time (`npm run db:start`) and verified Postgres, REST, container health, and data persistence across stop/start. Found `enable_anonymous_sign_ins = false` in `config.toml` (must be enabled for guest mode). Could not reproduce a port-conflict failure on macOS. Abdulrahman set the GitHub repo to squash-only merging after PR #1 landed as a merge commit by accident.
 - 2026-11-07: PR #1 reviewed and merged by Abdulrahman. It landed as a merge commit instead of a squash, so `main` has the six branch commits plus the merge commit. Left as is (no history rewrite). Local branch deleted with `git branch -D`; remote branch already deleted by GitHub.
 - 2026-11-07: Added the `architecture/` folder (overview, five flows, draft data model, change log) after Abdulrahman added a global rule requiring one in every project. Diagrams checked with a real Mermaid renderer (6 of 6 render; a deliberately broken one is rejected). Only the dev environment is marked built. Also: Abdulrahman rejected `jsonb` for answer choices because integrity matters and the correct answer must not be visible in the browser, and leans to a separate `choices` table; the second, final decision and how the answer is hidden are still pending.
+- 2026-11-07: Finalized the answer-hiding design (option A) after Abdulrahman confirmed the separate `choices` table. Turned on anonymous sign-ins in `supabase/config.toml` and verified a guest token has role `authenticated`. Tested option A on throwaway tables against local Supabase (REST as visitor and guest, SQL as each role, `pg_stats`, a Realtime WebSocket): no leak found. Found that new public tables grant everything to the browser roles by default, that new functions are executable by `PUBLIC`, and that a per-choice check function is an answer-key oracle. Not verified: GraphQL (extension off locally), hosted Supabase defaults. Scratch tables dropped. Not yet committed. The app was quit mid-edit once; the docs were redone from a clean state.

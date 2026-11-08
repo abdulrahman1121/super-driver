@@ -2,10 +2,10 @@
 
 Living documentation of what SuperDriver does and how data moves through it. It is updated **in the same commit/PR as the change it describes**, never in a batch at the end.
 
-| File | What it covers |
-|---|---|
+| File                         | What it covers                                                    |
+| ---------------------------- | ----------------------------------------------------------------- |
 | [data-flow.md](data-flow.md) | Diagrams: system overview, the key user flows, and the data model |
-| [changes.md](changes.md) | Dated log of every architecture change, with the reasoning |
+| [changes.md](changes.md)     | Dated log of every architecture change, with the reasoning        |
 
 ## Status labels
 
