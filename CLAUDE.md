@@ -125,14 +125,13 @@ Config notes:
 ## Next steps
 1. ~~Fix the `gitignore` → `.gitignore` filename~~ Done (`be607e4`).
 2. ~~Add Collins to the GitHub repo~~ Done: invited and cloned.
-3. ~~Decide the scaffold options~~ Done. Still to decide: the feature split between Abdulrahman and Collins.
+3. ~~Decide the scaffold options~~ and ~~the feature split~~ Done (see Decisions log). Next: finalize the schema, since Collins's `problem_reports` table depends on the content tables.
 4. ~~Branch `chore/scaffold-nextjs-supabase`~~ Merged (PR #1). Collins should pull `main`, `nvm use`, and run `npm ci`.
 5. ~~Abdulrahman: Docker + local Supabase~~ Done and verified (see "Local Supabase"). Collins still needs to run `npm run db:start` on his machine.
 6. Branch `feat/v1-database-schema`: finalize the content, review, progress, and report tables + RLS (this is the shared contract; both devs agree before parallel work).
 
 ## Open decisions
 - Scaffold options (decided: npm, app at root, Node 24, Tailwind with shadcn/ui added on demand, ESLint + Prettier, Supabase CLI as a project dependency). All scaffold options are settled.
-- Feature split between the two developers.
 - Scenario puzzle rendering for V1 (plain SVG / SVG + CSS transitions / SVG + Motion).
 - Grounding approach for the reviewer (send the whole PDF/chapter vs. chunked search stored in Supabase).
 - `choices` as `jsonb` vs. a separate `choices` table.
@@ -153,7 +152,8 @@ Config notes:
 | 2026-11-03 | Report-a-problem → email + GitHub issue, with spam protection | Feedback loop in every phase without flooding the inbox |
 | 2026-11-03 | V1 guest-only; sign-in nudge + Google linking in V2 | A nudge needs a working sign-in, so both ship together |
 | 2026-11-03 | Both devs run Supabase locally with Docker | Avoids shared-DB collisions and environment drift |
-| 2026-11-03 | Feature-by-feature work split | Both devs learn the full stack; requires an agreed shared contract first |
+| 2026-11-03 | Feature-by-feature work split | Superseded on 2026-11-07 by the ownership row below. Original reasoning: both devs learn the full stack; requires an agreed shared contract first |
+| 2026-11-07 | Ownership: V1 Collins = report-a-problem only; Abdulrahman = all other V1 features. V2 (tentative) Collins = sign-in nudge + mini driving simulation; Abdulrahman = state picker, Google sign-in, account merging | Report-a-problem is the most self-contained V1 slice (own table, Edge Function, email, GitHub), so merge conflicts are unlikely. Risks accepted: V1 is lopsided (9 of 10 items on Abdulrahman against a 2-day target); Collins's table depends on the content schema (type, ID, hash) and his button must be placed in Abdulrahman's pages, so he can build the Edge Function/email/GitHub parts against a stub table first; the V2 nudge needs working Google sign-in before it can be tested |
 | 2026-11-03 | npm as package manager (over pnpm, bun) | Ships with Node and is the default in Next.js/Supabase docs, so nothing extra for Collins to install; pnpm/bun gains are marginal for a 2-person, ~5-day project. Commit `package-lock.json`, use `npm ci` for installs, and pin Node so both devs match |
 | 2026-11-03 | Next.js app at the repo root (not `web/`) | One `package.json`; Vercel/CI/`create-next-app` default to root; `supabase/` already gives the backend its own directory. Caveat: Next config files share the root. Check `create-next-app` doesn't overwrite our `.gitignore` |
 | 2026-11-03 | Tailwind first; shadcn/ui added component by component (over CSS Modules, or shadcn from day one) | Abdulrahman is learning, so plain Tailwind first, then shadcn/Radix for accessible pieces (dialogs, progress, radio groups). Components are copied into `components/ui/`, so we own them. Only one dev adds a given component at a time to avoid merge conflicts. Verify current Tailwind v4 / shadcn init steps against official docs at scaffold time |
