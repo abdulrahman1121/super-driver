@@ -137,7 +137,7 @@ Config notes:
 - Scaffold options (decided: npm, app at root, Node 24, Tailwind with shadcn/ui added on demand, ESLint + Prettier, Supabase CLI as a project dependency). All scaffold options are settled.
 - Scenario puzzle rendering for V1 (plain SVG / SVG + CSS transitions / SVG + Motion).
 - Grounding approach for the reviewer (send the whole PDF/chapter vs. chunked search stored in Supabase).
-- `choices` as `jsonb` vs. a separate `choices` table.
+- How the correct answer is hidden from the browser. Chosen so far: option A (`is_correct` on `choices` with column-level privileges, graded by a server-side function), awaiting the final confirmation.
 - Scenario data model.
 - How the human approval step is done (Supabase dashboard vs. a small admin page).
 - Where the reviewer runs (local script vs. Edge Function) and which AI model/API.
@@ -166,6 +166,7 @@ Config notes:
 | 2026-11-05 | React Compiler off | Abdulrahman is learning React; manual memoization shows when and why components re-render. Can be turned on later |
 | 2026-11-05 | Classic caching (Cache Components off) | Matches the static generation + ISR plan; far more documentation. `create-next-app --yes` enabled it by default, so it was removed from `next.config.ts` |
 | 2026-11-05 | Include `AGENTS.md`, imported from `CLAUDE.md` with `@AGENTS.md` | Next.js's agent guidance stays in its own file; project rules stay in `CLAUDE.md` |
+| 2026-11-07 | Answer choices in a separate `choices` table (over a `jsonb` column on `questions`) | Integrity matters, and the correct answer must not be visible in the browser's network tab. A `jsonb` column cannot hide one field, since the flag sits inside the JSON the client reads. A table allows column-level privileges and database-enforced rules. Costs: a join on every question read, and the content hash and the published-only RLS policy must cover two tables |
 | 2026-11-03 | Pin Node 24 (over 22) | Current LTS and what Abdulrahman already runs; Next.js needs >=20.9. Enforced with `.nvmrc`, `engines`, and `engine-strict=true` so a wrong Node fails at install |
 
 ## Progress log

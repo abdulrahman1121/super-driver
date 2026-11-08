@@ -8,11 +8,12 @@ Newest first. Each entry says what changed, why, and where the decision is recor
 - Why: a standing project rule is to keep a visual, incrementally updated picture of data flow.
 - State at this date: only the dev environment is **built** (Next.js app on the stock starter page, local Supabase in Docker, not connected to each other). Everything else is **planned** from the 2026-11-03 decisions.
 
-## 2026-11-07: Answer choices become their own table (pending final confirmation)
+## 2026-11-07: Answer choices become their own table
 
-- Choices for a question are leaning toward a separate `choices` table instead of a `jsonb` column on `questions`.
-- Why: integrity matters, and the correct answer must not be readable in the browser's network tab. How the answer is hidden is still a **pending decision** (see the practice test flow in `data-flow.md`).
-- Decisions log entry: not yet recorded; the second, final decision is outstanding.
+- Choices for a question live in a separate `choices` table instead of a `jsonb` column on `questions`. Status: decided (still **planned**, not built).
+- Why: integrity matters, and the correct answer must not be readable in the browser's network tab. A `jsonb` column cannot hide one field inside it.
+- How the answer is hidden is a **pending decision**: option A (`is_correct` on `choices`, column-level privileges, graded by a server-side function) is chosen but not yet confirmed as final. See the practice test flow in `data-flow.md`.
+- Decisions log: see the 2026-11-07 `choices` row in `CLAUDE.md`.
 
 ## 2026-11-05: Scaffold and local Supabase
 
