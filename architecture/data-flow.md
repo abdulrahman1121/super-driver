@@ -183,6 +183,14 @@ erDiagram
     bool is_correct "browser cannot read"
     text explanation "browser cannot read"
   }
+  scenarios {
+    text id PK "stable key, never renamed"
+    int schema_version "scene format version"
+    jsonb scene "browser can read, draws the picture"
+    text description "required, plain-language fallback"
+    text status "draft, ai_reviewed, published"
+    text content_hash "covers the scene too"
+  }
   content_reviews {
     text verdict
     text quote "must appear in the guide text"
@@ -195,7 +203,8 @@ erDiagram
 
 - How questions attach to lessons and sections is undecided, so that edge is not drawn.
 - `is_correct` and `explanation` are on `choices` but have no browser access (column-level privileges, option A). Whether `choices` carries its own published status or follows its question's is not decided.
-- The progress table name and shape are placeholders. The scenario data model is undecided and not shown.
+- The progress table name and shape are placeholders.
+- `scenarios` is drawn but not connected: how a scenario attaches to a question (which holds its choices and hidden answer) is undecided, so that edge is not drawn. The solution is never stored on the scenario.
 - Progress rows reference stable text ids and choice ids, never array positions.
 
 ## 7. Who can reach what: access control layers
@@ -235,3 +244,38 @@ flowchart TB
 - Someone granting too much on purpose, or following the misleading error hint that suggests a table-wide `SELECT`, is caught by the guard test, which fails if a table lacks RLS, an answer column is readable, or a function is callable without being on the allow-list.
 - A per-choice check is an answer-key oracle if someone loops over it, so the practice test has to grade the whole submission at once (design pending).
 - Not verified: GraphQL (extension off locally) and the hosted project's default grants.
+
+## 8. Scenario data: validation and fallback (planned)
+
+A scenario scene is data drawn in the browser, so bad data has to be stopped early and must never leave the learner stuck.
+
+```mermaid
+flowchart LR
+  classDef planned fill:#f3f4f6,stroke:#9ca3af,stroke-dasharray:5 5,color:#374151
+
+  Author["Scene written<br/>(seed SQL)"]:::planned
+  V1{"Write-time validation<br/>shape, known types,<br/>bounds, no overlaps"}:::planned
+  V2{"Database check<br/>object with schema_version"}:::planned
+  Row[("scenarios row<br/>status: draft")]:::planned
+  Review["Human reviews a rendered<br/>preview next to the text description"]:::planned
+  Pub[("published")]:::planned
+  Render["Browser draws the scene<br/>inside an error boundary"]:::planned
+  Fallback["Shows the text description<br/>and the question still works"]:::planned
+
+  Author --> V1
+  V1 -->|"fails: stops CI"| Author
+  V1 --> V2 --> Row --> Review
+  Review -->|"approved"| Pub
+  Review -->|"rejected or edited"| Row
+  Pub --> Render
+  Render -->|"scene fails to draw"| Fallback
+```
+
+**What it shows:** three places a bad scene can be caught (when written, in the database, and while drawing), plus the human check. Any edit changes the content hash, which returns the scenario to `draft`.
+
+**Failure notes:**
+
+- The AI reviewer checks the written explanation against the Driver Guide but cannot see the picture, so the human preview is the only check that the scene matches its description.
+- If the scene fails to draw, the learner still sees the required text description and can answer, so a bad scene degrades a lesson instead of blocking it.
+- The scene format carries a `schema_version`, so old and new formats can coexist when the format changes.
+- Not verified: whether the database-level JSON-schema extension (`pg_jsonschema`) is available locally; the first version may validate in a script instead.
