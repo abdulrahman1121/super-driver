@@ -197,3 +197,41 @@ erDiagram
 - `is_correct` and `explanation` are on `choices` but have no browser access (column-level privileges, option A). Whether `choices` carries its own published status or follows its question's is not decided.
 - The progress table name and shape are placeholders. The scenario data model is undecided and not shown.
 - Progress rows reference stable text ids and choice ids, never array positions.
+
+## 7. Who can reach what: access control layers
+
+Every browser request passes the same gates before it touches data. Only the first gate and its guard test exist today; the tables behind them are planned.
+
+```mermaid
+flowchart TB
+  classDef built fill:#d1fae5,stroke:#059669,color:#064e3b
+  classDef planned fill:#f3f4f6,stroke:#9ca3af,stroke-dasharray:5 5,color:#374151
+
+  Browser["Browser<br/>visitor = anon role<br/>guest = authenticated role"]:::built
+  API["Supabase API<br/>(PostgREST)"]:::built
+  G1{"Gate 1: table privileges<br/>new tables grant nothing by default"}:::built
+  G2{"Gate 2: column privileges<br/>is_correct and explanation not granted"}:::planned
+  G3{"Gate 3: RLS<br/>published rows only"}:::planned
+  Data[("Content tables")]:::planned
+  Fn["Grading function<br/>(SECURITY DEFINER)"]:::planned
+  Server["Server-side code<br/>service_role"]:::built
+  Guard["Guard test: npm run db:test"]:::built
+
+  Browser --> API --> G1 --> G2 --> G3 --> Data
+  Browser -.->|"rpc: check or submit answers"| Fn
+  Fn -.->|"runs as owner, reads the hidden columns"| Data
+  Fn -.->|"returns right/wrong only"| Browser
+  Server ==>|"bypasses the gates"| Data
+  Guard -.->|"fails the build if a gate is loosened"| G1
+```
+
+**What it shows:** a request is refused at the first gate that says no. Gate 1 is now built: a migration makes new tables, sequences and functions closed to the browser roles until a later migration grants access on purpose. Gates 2 and 3 are planned with the `choices` and content tables. The grading function is the only way the browser learns whether an answer is right, and it only gets back right or wrong.
+
+**Why this shape:** the browser holds a public key, so the database has to enforce access. RLS limits rows and column privileges limit columns, and we need both. Server-side code uses `service_role` and bypasses the gates, so that key must never reach the browser.
+
+**Failure notes:**
+
+- A forgotten grant fails closed: the developer sees "permission denied" and the data stays hidden.
+- Someone granting too much on purpose, or following the misleading error hint that suggests a table-wide `SELECT`, is caught by the guard test, which fails if a table lacks RLS, an answer column is readable, or a function is callable without being on the allow-list.
+- A per-choice check is an answer-key oracle if someone loops over it, so the practice test has to grade the whole submission at once (design pending).
+- Not verified: GraphQL (extension off locally) and the hosted project's default grants.
