@@ -1,0 +1,8 @@
+.next
+node_modules
+package-lock.json
+supabase/.branches
+supabase/.temp
+src/lib/database.types.ts
+CLAUDE.md
+LOG.md

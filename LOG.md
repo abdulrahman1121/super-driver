@@ -1,13 +1,15 @@
-# SuperDrive Build Log
+# SuperDriver Build Log
 
-My personal record of building SuperDrive with Collins for TCSS 490.
+My personal record of building SuperDriver with Collins for TCSS 490.
 
 ## Planned (not implemented yet)
 
 ### Setup
-- [ ] Create the `super-driver` GitHub repo and add Collins
+- [x] Add Collins to the GitHub repo
+- [x] Choose scaffold options: npm, app at root, `src/`, Tailwind first (shadcn/ui on demand), ESLint + Prettier, Supabase CLI as a dependency wrapped in npm scripts, React Compiler off, classic caching, `AGENTS.md` included
+- [x] Commit `package-lock.json` and the Node pin (`.nvmrc` + `engines`)
 - [ ] Decide who owns which features
-- [ ] Scaffold Next.js + TypeScript + Supabase CLI (`chore/scaffold-nextjs-supabase`)
+- [ ] Scaffold Next.js + TypeScript + Supabase CLI (`chore/scaffold-nextjs-supabase`): built, verified, committed and pushed; PR to `main` still to open
 - [ ] Both of us set up Docker and run Supabase locally
 - [ ] Finalize the database schema + RLS policies together (`feat/v1-database-schema`)
 
@@ -31,14 +33,23 @@ My personal record of building SuperDrive with Collins for TCSS 490.
 - [ ] Mini 2D driving simulation
 
 ## In Progress
-- Repo setup on `main`: `.gitignore`, `CLAUDE.md`, `LOG.md`
+- `chore/scaffold-nextjs-supabase`: scaffold committed and pushed; next is the PR (squash merge) and Collins pulling and running `npm ci`
 
 ## Changelog (done)
-- **2026-11-03**: Finished planning. Picked the stack, content storage, auth approach, verification pipeline and problem reporting. Named the platform SuperDrive and the repo `super-driver`.
+- **2026-11-05**: Built the Next.js + Tailwind + ESLint/Prettier + Supabase CLI scaffold on `chore/scaffold-nextjs-supabase`. Checked it with a fresh `npm ci`, build, lint and format check, and saw `EBADENGINE` on a wrong Node version. Committed as five commits and pushed the branch, plus `main` with the ignore-file fix.
+- **2026-11-03**: Fixed the ignore file, which had been committed as `gitignore` without the dot (so git ignored nothing). Invited Collins and he cloned the repo. Picked npm, app at the repo root, and Node 24. Added `.nvmrc` and `.npmrc` to pin Node.
+- **2026-11-03**: Created the GitHub repo and pushed the first commit (`.gitignore`, `CLAUDE.md`, `LOG.md`). Renamed the platform to SuperDriver.
+- **2026-11-03**: Finished planning. Picked the stack, content storage, auth approach, verification pipeline and problem reporting. Named the platform (later renamed to SuperDriver).
 
 ## Decisions & Open Questions
 
 ### Decisions
+- **2026-11-03: npm as the package manager.** It ships with Node and matches the Next.js and Supabase docs, so Collins installs nothing extra. pnpm and bun are faster, but that barely matters for a two-person, ~5-day project. We commit the lockfile, install with `npm ci`, and pin Node.
+- **2026-11-03: App at the repo root, not `web/`.** One `package.json`, and Vercel/CI/`create-next-app` all default to the root. `supabase/` already gives the backend its own folder. The cost is Next.js config files sharing the root.
+- **2026-11-03: Tailwind first, shadcn/ui added component by component.** I want to learn Tailwind directly before adding Radix and the `cn()` helper on top. shadcn copies component source into the repo, so we add only what we need (dialogs, progress bars, radio groups). Collins and I agree on one person adding a component and merging first, to avoid conflicts in `components/ui/` and `package.json`.
+- **2026-11-05: ESLint + Prettier for linting and formatting.** It's what `create-next-app` and the Next.js docs assume, and `eslint-config-next` catches framework mistakes while I'm learning React. I considered Biome (one fast tool, but no Next.js-specific rules) and mixing Biome with ESLint/Prettier (two formatters would rewrite each other's output). Prettier settings live in the repo so Collins and I format identically.
+- **2026-11-05: Supabase CLI as a project dependency.** Its version is pinned in `package-lock.json`, so Collins and I run identical `supabase start`, migration and type-generation behavior, and a fresh clone only needs `npm ci` plus Docker. The longer `npx supabase ...` commands get wrapped in `npm run` scripts (like `db:start` and `db:types`).
+- **2026-11-03: Pin Node 24.** It's the current LTS and what I already run. `.nvmrc`, `engines` and `engine-strict` make a wrong Node version fail at install instead of causing weird bugs for Collins or me.
 - **2026-11-03: Supabase tables for content.** Typed files or MDX would have been faster for V1, but I need a review workflow with statuses, and a database is the natural home for that. It also makes the random 40-question test and V2 progress easy.
 - **2026-11-03: Supabase Auth, not Clerk.** One vendor, and RLS policies can use the logged-in user's ID directly.
 - **2026-11-03: Anonymous sign-ins for guests.** Guests are real users from the start, so when they link Google in V2, their progress stays attached to the same ID.
@@ -57,6 +68,9 @@ My personal record of building SuperDrive with Collins for TCSS 490.
 - Which email service?
 
 ## Reflections & Lessons Learned
+- **A tool's `--yes` flag makes decisions for you.** `create-next-app --yes` quietly turned on Cache Components even though I had chosen classic caching. I only caught it by reading the generated `next.config.ts`. After any generator runs, read what it wrote and compare it with what you decided.
+- **A lockfile pins versions, but it can't fix the registry.** My first install failed with a 404 for a package version that had been published seconds earlier, because the registry's metadata was ahead of its file storage. Waiting a few minutes fixed it. The lockfile did its job on the next try.
+- **A guard you've never seen fail isn't proven.** `engine-strict` read `false` until `package.json` existed, and only a deliberately impossible `engines` value showed `EBADENGINE` actually blocking an install.
 - **Where you put a check matters as much as the check itself.** Reviewing content on every page view sounded safe, but it would have shown users AI-edited text nobody verified and made answers change between visits. Reviewing once before publishing gives the same protection without the latency or cost.
 - **A hash is a content fingerprint.** Any tiny edit changes it, which makes it a cheap way to know whether something needs re-reviewing.
 - **A backup only helps if it fails differently than the thing it backs up.** localStorage can't save guests who clear their browser, because the Supabase session is stored there too. It's still useful for failed network saves.

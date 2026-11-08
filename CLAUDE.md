@@ -1,6 +1,8 @@
-# CLAUDE.md: SuperDrive (repo: super-driver)
+# CLAUDE.md: SuperDriver (repo: super-driver)
 
 Handoff document for AI agents and anyone picking up this project. Read this fully before making changes.
+
+@AGENTS.md
 
 ## Project overview
 
@@ -26,7 +28,7 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 ## Repository
 
 - Name: `super-driver`
-- Current branch: `main` (initial setup; no code yet)
+- Current branch: `chore/scaffold-nextjs-supabase` (scaffold committed and pushed, PR not yet opened or merged); `main` holds docs only
 - Branching: one branch per big addition, `type/short-description` (Conventional Commit types), merged into `main` after review. `main` must always work.
 - Commits: Conventional Commits; never commit without explicit user approval of the changes and the message.
 - Secrets: never commit `.env*`. Use `.env.example` templates.
@@ -90,16 +92,34 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 - [ ] Mini top-down 2D driving simulation (Rive + canvas, TBD)
 
 ## Current state
-Planning complete. Repo initialized locally with `.gitignore`, `CLAUDE.md`, `LOG.md`. No application code yet.
+Planning complete and the scaffold exists on branch `chore/scaffold-nextjs-supabase`, committed (5 commits) and pushed to `origin`. `main` has the docs (`762ef1d`) plus the ignore-file fix (`be607e4`), also pushed. Collins has been invited and has cloned the repo; he must pull the `.gitignore` fix.
+
+Scaffold contents (verified 2026-11-05): Next.js 16.4.5 + React 19 + TypeScript + Tailwind v4, App Router, `src/` directory, import alias `@/*`, ESLint (`eslint-config-next`) + Prettier (`eslint-config-prettier` last in the ESLint config), Supabase CLI 3.0.0 as a dev dependency with `supabase/` initialized (`supabase init`; no migrations yet), `.env.example`, `AGENTS.md` (imported at the top of this file). `package-lock.json` is committed; fresh `npm ci` + `npm run build` + lint + `format:check` all pass.
+
+Config notes:
+- **npm** is the package manager. **Node 24**: `.nvmrc`, `engines` (`>=24 <25`) and `.npmrc` (`engine-strict=true`). A wrong Node fails with `EBADENGINE` (demonstrated).
+- `create-next-app --yes` turned on `cacheComponents` and `partialPrefetching` by default; these were REMOVED from `next.config.ts` to keep classic caching. Do not re-add them without a decision.
+- React Compiler is off.
+- `.prettierignore` skips `CLAUDE.md` and `LOG.md` (Prettier would reformat tables and wrapping).
+- Known, unresolved: `@types/node` is `^20` while the runtime is Node 24; `npm audit` reports 8 moderate issues, all `minimatch` inside the ESLint/typescript-eslint dev chain (the suggested `--force` fix downgrades `eslint-config-next`, so it was not applied).
+- Not yet done: Docker + `npm run db:start` has not been run; `db:types` writes to `src/lib/database.types.ts`, which does not exist until the schema does.
+
+## Commands
+- `npm ci`: install exactly what the lockfile says (use this after cloning). `nvm use` first.
+- `npm run dev` / `build` / `start`: Next.js.
+- `npm run lint`, `npm run format`, `npm run format:check`.
+- `npm run db:start` / `db:stop` / `db:status` / `db:reset` / `db:types`: Supabase CLI wrappers (need Docker running).
 
 ## Next steps
-1. Create the GitHub repo `super-driver`, push the initial commit, and add both developers.
-2. Decide the feature split between Abdulrahman and Collins.
-3. Branch `chore/scaffold-nextjs-supabase`: Next.js + TypeScript app, Supabase CLI init, `.env.example`.
-4. Branch `feat/v1-database-schema`: finalize the content, review, progress, and report tables + RLS (this is the shared contract; both devs agree before parallel work).
-5. Open decisions to resolve (see below).
+1. ~~Fix the `gitignore` → `.gitignore` filename~~ Done (`be607e4`).
+2. ~~Add Collins to the GitHub repo~~ Done: invited and cloned.
+3. ~~Decide the scaffold options~~ Done. Still to decide: the feature split between Abdulrahman and Collins.
+4. Branch `chore/scaffold-nextjs-supabase`: scaffold committed and pushed; next is opening the PR (squash merge), then deleting the branch locally with `git branch -D`. Collins should pull `main`, `nvm use`, and run `npm ci`.
+5. Both developers set up Docker and run Supabase locally (`npm run db:start`).
+6. Branch `feat/v1-database-schema`: finalize the content, review, progress, and report tables + RLS (this is the shared contract; both devs agree before parallel work).
 
 ## Open decisions
+- Scaffold options (decided: npm, app at root, Node 24, Tailwind with shadcn/ui added on demand, ESLint + Prettier, Supabase CLI as a project dependency). All scaffold options are settled.
 - Feature split between the two developers.
 - Scenario puzzle rendering for V1 (plain SVG / SVG + CSS transitions / SVG + Motion).
 - Grounding approach for the reviewer (send the whole PDF/chapter vs. chunked search stored in Supabase).
@@ -122,6 +142,19 @@ Planning complete. Repo initialized locally with `.gitignore`, `CLAUDE.md`, `LOG
 | 2026-11-03 | V1 guest-only; sign-in nudge + Google linking in V2 | A nudge needs a working sign-in, so both ship together |
 | 2026-11-03 | Both devs run Supabase locally with Docker | Avoids shared-DB collisions and environment drift |
 | 2026-11-03 | Feature-by-feature work split | Both devs learn the full stack; requires an agreed shared contract first |
+| 2026-11-03 | npm as package manager (over pnpm, bun) | Ships with Node and is the default in Next.js/Supabase docs, so nothing extra for Collins to install; pnpm/bun gains are marginal for a 2-person, ~5-day project. Commit `package-lock.json`, use `npm ci` for installs, and pin Node so both devs match |
+| 2026-11-03 | Next.js app at the repo root (not `web/`) | One `package.json`; Vercel/CI/`create-next-app` default to root; `supabase/` already gives the backend its own directory. Caveat: Next config files share the root. Check `create-next-app` doesn't overwrite our `.gitignore` |
+| 2026-11-03 | Tailwind first; shadcn/ui added component by component (over CSS Modules, or shadcn from day one) | Abdulrahman is learning, so plain Tailwind first, then shadcn/Radix for accessible pieces (dialogs, progress, radio groups). Components are copied into `components/ui/`, so we own them. Only one dev adds a given component at a time to avoid merge conflicts. Verify current Tailwind v4 / shadcn init steps against official docs at scaffold time |
+| 2026-11-05 | ESLint + Prettier (over Biome, or Biome mixed in) | Standard `create-next-app` setup with `eslint-config-next` framework rules; Biome lacks those rules, and two formatters would fight. Use `eslint-config-prettier`, commit `.prettierrc`, add `lint` and `format:check` scripts (and later run them in CI) |
+| 2026-11-05 | Supabase CLI as a project dependency (over global install) | Version pinned in the lockfile so both devs get identical local-stack, migration and type-gen behavior; fresh clone needs only `npm ci` + Docker. Wrap long `npx supabase` commands in `npm run` scripts (`db:start`, `db:types`, ...) |
+| 2026-11-05 | Code under `src/` | Keeps the repo root to config files plus `supabase/`; separates app code from the backend folder |
+| 2026-11-05 | React Compiler off | Abdulrahman is learning React; manual memoization shows when and why components re-render. Can be turned on later |
+| 2026-11-05 | Classic caching (Cache Components off) | Matches the static generation + ISR plan; far more documentation. `create-next-app --yes` enabled it by default, so it was removed from `next.config.ts` |
+| 2026-11-05 | Include `AGENTS.md`, imported from `CLAUDE.md` with `@AGENTS.md` | Next.js's agent guidance stays in its own file; project rules stay in `CLAUDE.md` |
+| 2026-11-03 | Pin Node 24 (over 22) | Current LTS and what Abdulrahman already runs; Next.js needs >=20.9. Enforced with `.nvmrc`, `engines`, and `engine-strict=true` so a wrong Node fails at install |
 
 ## Progress log
 - 2026-11-03: Planning session completed. Stack, content storage, auth, verification and reporting decided. Repo initialized with docs and `.gitignore`.
+- 2026-11-03: Created the GitHub repo and pushed the first commit (`docs: initialize repo with project plan, build log, and gitignore`). Platform renamed from SuperDrive to SuperDriver; docs updated to match (repo name stays `super-driver`). Spotted that the ignore file was committed as `gitignore` without the dot.
+- 2026-11-03: Fixed the ignore file name (`be607e4`). Collins invited and cloned the repo. Chose npm as the package manager, app at the repo root, and Node 24. Added `.nvmrc` and `.npmrc`.
+- 2026-11-05: Settled the remaining scaffold options (Tailwind first with shadcn/ui on demand, ESLint + Prettier, Supabase CLI as a dependency, `src/`, React Compiler off, classic caching, `AGENTS.md`). Built the scaffold on `chore/scaffold-nextjs-supabase` (generated in a temp dir, then copied in so our `.gitignore` was not overwritten). First install hit an npm registry 404 for `electron-to-chromium@1.5.478` (published seconds earlier; resolved within minutes, no workaround needed). Verified: fresh `npm ci`, build, lint, `format:check`, `EBADENGINE` on a wrong Node. Committed as five commits; pushed `main` (ignore-file fix) and the branch. Note: `npm ci` leaves a ~600 MB gitignored `node_modules/` and never edits the lockfile.
