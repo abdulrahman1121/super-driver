@@ -2,6 +2,14 @@
 
 Newest first. Each entry says what changed, why, and where the decision is recorded.
 
+## 2026-11-07: Scenario puzzles stored as a scene description (planned)
+
+- A scenario is a `jsonb` scene description (road layout, vehicles, signs, signals) drawn by one generic SVG renderer. The solution is kept out of the scene and lives in `choices`, behind the column privileges that hide `is_correct`.
+- Every scene has a `schema_version`, a required text description, and labels on each vehicle and sign. Bad data is handled in layers: write-time validation, a basic database check, a render-time fallback to the text description, and re-approval after any edit.
+- Why: scenarios become data, not code, so content can grow without new components, and accessibility and validation rules live in one place.
+- Not built: nothing exists yet. See section 8 of `data-flow.md`. Open: how scenarios attach to questions, and the rendering approach.
+- Decisions log: see the 2026-11-07 scenario row in `CLAUDE.md`.
+
 ## 2026-11-07: Browser roles locked out of new objects by default (built)
 
 - First migration (`20261108050310_secure_default_privileges.sql`): new tables, sequences and functions in `public` grant nothing to `anon` or `authenticated`. Plus a pgTAP guard test (`npm run db:test`) that fails if a table lacks RLS, an answer column is readable by the browser, or a function is callable without being allow-listed.
