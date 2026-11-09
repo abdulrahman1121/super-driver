@@ -2,6 +2,15 @@
 
 Newest first. Each entry says what changed, why, and where the decision is recorded.
 
+## 2026-11-08: Learning slice built: lessons, graded checks, localStorage progress (built)
+
+- Four content tables (`lessons`, `sections`, `questions`, `choices`) with RLS (published rows only) and column grants (the browser cannot read `is_correct`, `explanation` or `status`, except `questions.status`). `check_choice` is a `SECURITY DEFINER` function that grades one choice and returns right or wrong plus the explanation. Questions belong to a section (decided option A). Migration `20261108120000_learning_content.sql`.
+- Next.js pages read published content on the server through a typed Supabase client with an 8 second timeout and one retry. The browser calls `check_choice` directly. Progress is stored in localStorage only (best result per question).
+- Content is four unreviewed WA lessons (17 questions) seeded as drafts; `supabase/publish.sql` is the human publish gate.
+- Why: an urgent demo of the learning feature on a working full-stack site. Several parts are deliberate shortcuts, listed under "Temporary shortcuts and debt" in `CLAUDE.md`: localStorage-only progress, no AI review, no content hash, no rate limit on `check_choice`.
+- Found by testing, not by design: a policy that reads another table is checked against the caller's column privileges (so `questions.status` is granted); supabase-js retries stacked with ours made failures take over a minute; the error page needed `retry()`, not `reset()`.
+- Decisions log: see the 2026-11-08 rows in `CLAUDE.md`. Diagrams: sections 1, 3, 6, 7 updated and section 9 added in `data-flow.md`.
+
 ## 2026-11-07: Scenario puzzles stored as a scene description (planned)
 
 - A scenario is a `jsonb` scene description (road layout, vehicles, signs, signals) drawn by one generic SVG renderer. The solution is kept out of the scene and lives in `choices`, behind the column privileges that hide `is_correct`.

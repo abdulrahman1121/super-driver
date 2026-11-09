@@ -86,7 +86,7 @@ select is(
      from information_schema.routine_privileges
     where routine_schema = 'public'
       and routine_name not like '\_guard\_%'
-      and routine_name <> all (array[]::text[])
+      and routine_name <> all (array['check_choice']::text[])
       and grantee in ('anon', 'authenticated', 'PUBLIC')),
   0,
   'no function in public is executable by the browser roles unless allow-listed'
