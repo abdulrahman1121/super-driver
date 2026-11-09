@@ -28,7 +28,7 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 ## Repository
 
 - Name: `super-driver`
-- Current branch: `main`. The scaffold branch was merged via PR #1 (as a merge commit, not a squash) and deleted locally and on the remote
+- Working branch: `feat/learning-slice` (the urgent demo build, not yet merged; PR to be opened by Abdulrahman). `main` is at the scenario-docs squash merge (#8). The scaffold branch was merged via PR #1 (as a merge commit, not a squash) and deleted locally and on the remote
 - GitHub is set to squash-only merging (changed by Abdulrahman on 2026-11-07), so `main` keeps one commit per feature from now on
 - Branching: one branch per big addition, `type/short-description` (Conventional Commit types), merged into `main` after review. `main` must always work.
 - Commits: Conventional Commits; never commit without explicit user approval of the changes and the message.
@@ -101,7 +101,14 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 - [ ] Mini top-down 2D driving simulation (Rive + canvas, TBD)
 
 ## Current state
-Planning complete and the scaffold is merged into `main` (PR #1, merge commit `e5036e5`, 2026-11-07). No schema, content, or feature code yet. Collins has been invited and has cloned the repo; he must pull the `.gitignore` fix.
+**2026-11-08, urgent demo build ("learning slice").** Abdulrahman asked to compress work so a full-stack site showing the learning feature is working and deployed, with shorter explanations (decisions still approved by him), then to go back and repay the shortcuts. Built on `feat/learning-slice` (unmerged, not yet deployed):
+- Schema: `lessons`, `sections`, `questions`, `choices` with RLS, column grants and the `check_choice` grader (migration `20261108120000_learning_content.sql`). Questions belong to a section.
+- Content: 4 WA lessons, 8 sections, 17 questions, 59 choices drafted from the official Driver Guide text (`supabase/seed.sql`, all `draft`, **unverified by a human or AI reviewer**). `supabase/publish.sql` is the human publish gate. Locally everything is currently published.
+- App: header with "SuperDriver" and a steering-wheel logo, Khan-style home page (hero, course cards, skill dots, progress bar), lesson pages with graded "check your understanding" questions, friendly error and 404 pages. Progress is localStorage only.
+- Verified: 22 pgTAP checks pass; real REST calls as a visitor; the quiz in a browser including wrong answer, retry, network drop, corrupt localStorage; production build; a frozen database fails in about 16 s and recovers (`retry()`).
+- NOT done: deploy (needs Abdulrahman to create the hosted Supabase and Vercel projects and share the project URL and anon key), content verification, everything under "Temporary shortcuts and debt".
+
+Earlier state: planning complete and the scaffold merged into `main` (PR #1, merge commit `e5036e5`, 2026-11-07). Collins has been invited and has cloned the repo; he must pull the `.gitignore` fix.
 
 Scaffold contents (verified 2026-11-05): Next.js 16.4.5 + React 19 + TypeScript + Tailwind v4, App Router, `src/` directory, import alias `@/*`, ESLint (`eslint-config-next`) + Prettier (`eslint-config-prettier` last in the ESLint config), Supabase CLI 3.0.0 as a dev dependency with `supabase/` initialized (`supabase init`; no migrations yet), `.env.example`, `AGENTS.md` (imported at the top of this file). `package-lock.json` is committed; fresh `npm ci` + `npm run build` + lint + `format:check` all pass.
 
@@ -112,6 +119,27 @@ Config notes:
 - `.prettierignore` skips `CLAUDE.md` and `LOG.md` (Prettier would reformat tables and wrapping).
 - Known, unresolved: `@types/node` is `^20` while the runtime is Node 24; `npm audit` reports 8 moderate issues, all `minimatch` inside the ESLint/typescript-eslint dev chain (the suggested `--force` fix downgrades `eslint-config-next`, so it was not applied).
 - `db:types` writes to `src/lib/database.types.ts`, which does not exist until the schema does.
+
+## Temporary shortcuts and debt (urgent demo build, 2026-11-08)
+These were taken on purpose to ship a demo fast. Abdulrahman will verify the content himself for now, and we will come back to repay all of this. Do not treat any of it as the finished design.
+
+| # | Shortcut | Decided design / what is missing | How to repay | Risk until then |
+|---|---|---|---|---|
+| 1 | **Content unreviewed**: 4 lessons drafted by an AI from the official guide, checked only by Abdulrahman | Write-time AI review with exact-quote citations, then human approval (see "Content verification pipeline") | Build the reviewer and `content_reviews`; re-verify every item; keep `publish.sql` as the human gate | Wrong or outdated driving law shown to learners. The footer tells them to check dol.wa.gov |
+| 2 | **Progress in localStorage only** (`src/lib/progress.ts`) | Anonymous Supabase sign-in, progress table with RLS, localStorage as a pending-saves queue | Build sign-in + progress table; turn `progress.ts` into the queue; reuse its best-result merge | Progress is lost if browser data is cleared, and is per device. No server-side progress at all |
+| 3 | **No content hash** on any content row | Hash per row so edits return it to `draft` and the reviewer never reruns on unchanged content | Add `content_hash` columns and the trigger or script | An edit to published content is not automatically unpublished |
+| 4 | **`check_choice` has no rate limit and is an answer-key oracle** | Practice test must grade a whole submission at once and protect test questions | Design the test grader; add rate limiting if the lesson checks are abused | Someone can loop the function to learn every lesson answer (accepted for lessons) |
+| 5 | **No CAPTCHA, no anonymous users** (sign-in not built) | CAPTCHA on anonymous sign-ins, stale-user cleanup | Part of the sign-in work | None yet, since there is no sign-in |
+| 6 | **Hosted Supabase not verified**: default grants may differ from local; `pg_graphql` untested | Verify before launch (see "Hiding the correct answer") | After the hosted project exists, rerun the guard checks and a visitor REST test against it | Possible answer leak on the hosted project if its defaults differ. Must be checked at deploy time |
+| 7 | **Seed on hosted is pasted into the SQL editor**, not a managed migration | Content seeding as a repeatable, reviewed pipeline | Decide a seeding approach (script or CI) | Manual steps can be skipped or done twice. The seed is idempotent, so a repeat is safe |
+| 8 | **Light theme only, minimal accessibility testing** | WCAG 2.2 AA target (the bar is Abdulrahman's to set) | Add dark mode if wanted; audit contrast, keyboard use, screen reader, zoom | Not audited. Basics are in (labels, text status not color-only, focus outlines, reduced motion) |
+| 9 | **Lesson pages render on request**, home page is ISR (60 s) | Static generation + ISR for all content pages | Add `generateStaticParams` and `revalidate` to lesson pages | Slightly slower lesson loads; no real risk |
+| 10 | **No problem-report button yet** (Collins's feature) | Report-a-problem in every phase | Collins's slice; needs the content tables, which now exist | Learners cannot flag wrong content |
+| 11 | **No automated tests for the app code** (only the database tests) | Component and end-to-end tests | Add a test runner and cover the quiz, progress store and error paths | App behavior was checked by hand in a browser; it can regress silently |
+| 12 | **Mobile and other browsers untested** | Test on phones, Safari, Firefox | Manual pass, then automate | Layout or the timeout code (`AbortSignal.any`) may misbehave on older browsers |
+| 13 | **Quiz answers lock after a correct answer** and there is no review mode, no practice test, no scenarios, no search, no accounts | Full V1 scope | Per the V1 scope list | The demo shows one feature only |
+
+Also: the 2026-11-08 explanations were shortened by request. Abdulrahman wants the full-depth write-up of this build later ("make up the sped up time"): why each choice, the failure analysis, and the lessons. Owed items: a walkthrough of how RLS plus column grants interact on the four tables, why `questions.status` had to be granted, how retries stack, and `retry()` versus `reset()`.
 
 ## Local Supabase (verified 2026-11-07, Abdulrahman's machine)
 - `npm run db:start` works with Docker 29.9.2 on macOS (Apple silicon). First run pulls ~12 images (a few minutes); later starts are fast. Postgres 17.11, 12 containers, all healthy.
@@ -153,7 +181,8 @@ Not verified, gaps:
 
 ## Commands
 - `npm ci`: install exactly what the lockfile says (use this after cloning). `nvm use` first.
-- `npm run dev` / `build` / `start`: Next.js.
+- `npm run dev` / `build` / `start`: Next.js. **Open http://localhost:3000, not the machine's LAN IP.** On the LAN address `next dev` blocks its client, so the page renders but never hydrates (buttons do nothing, reproduced), and the app's `127.0.0.1` Supabase URL would not be reachable anyway. Needs `.env.local` (see `.env.example`; values from `npm run db:status`).
+- Seed content: `npm run db:reset` loads `supabase/seed.sql` (drafts). To publish after checking the content: `docker exec -i supabase_db_SuperDriver psql -U postgres -v ON_ERROR_STOP=1 < supabase/publish.sql`.
 - `npm run lint`, `npm run format`, `npm run format:check`.
 - `npm run db:start` / `db:stop` / `db:status` / `db:reset` / `db:types`: Supabase CLI wrappers (need Docker running).
 - `npm run db:test`: runs the pgTAP tests in `supabase/tests/database/`, including the security guard (needs the local stack running; the first run pulls the `pg_prove` image).
@@ -164,14 +193,17 @@ Not verified, gaps:
 3. ~~Decide the scaffold options~~ and ~~the feature split~~ Done (see Decisions log). Next: finalize the schema, since Collins's `problem_reports` table depends on the content tables.
 4. ~~Branch `chore/scaffold-nextjs-supabase`~~ Merged (PR #1). Collins should pull `main`, `nvm use`, and run `npm ci`.
 5. ~~Abdulrahman: Docker + local Supabase~~ Done and verified (see "Local Supabase"). Collins still needs to run `npm run db:start` on his machine.
-6. Branch `feat/v1-database-schema`: finalize the content, review, progress, and report tables + RLS (this is the shared contract; both devs agree before parallel work).
+6. ~~Branch `feat/v1-database-schema`~~ Content tables built on `feat/learning-slice` (section-owned questions, no `problem_reports` yet).
+7. **Deploy the demo** (in progress): Abdulrahman creates the hosted Supabase project and a Vercel project; share the project URL and anon key only (never the service-role key). Then: link and push migrations, paste `seed.sql`, verify the content, run `publish.sql`, set the two `NEXT_PUBLIC_SUPABASE_*` env vars on Vercel, deploy, and repeat the visitor REST checks against the hosted project (debt #6).
+8. **Repay the debt** above, in an order Abdulrahman picks; each repayment is its own decision and branch.
+9. Write the full-depth learning notes owed for this build (see the debt section).
 
 ## Open decisions
 - Scaffold options (decided: npm, app at root, Node 24, Tailwind with shadcn/ui added on demand, ESLint + Prettier, Supabase CLI as a project dependency). All scaffold options are settled.
 - Scenario puzzle rendering for V1 (plain SVG / SVG + CSS transitions / SVG + Motion).
 - Grounding approach for the reviewer (send the whole PDF/chapter vs. chunked search stored in Supabase).
 - How the practice test grades without letting per-choice checks reveal the answer key.
-- How scenarios attach to questions (a scenario is visual context for a question whose answer lives in `choices`), and how the human approval step shows a rendered scene (a small admin preview page is now likely, since JSON in the Supabase dashboard cannot be checked visually).
+- How scenarios attach to questions (questions now belong to sections; a scenario is visual context for a question whose answer lives in `choices`), and how the human approval step shows a rendered scene (a small admin preview page is now likely, since JSON in the Supabase dashboard cannot be checked visually).
 - The scenario rendering approach (plain SVG / SVG + CSS transitions / SVG + Motion) is still open and affects the renderer, not the stored format.
 - How the human approval step is done (Supabase dashboard vs. a small admin page).
 - Where the reviewer runs (local script vs. Edge Function) and which AI model/API.
@@ -205,6 +237,16 @@ Not verified, gaps:
 | 2026-11-07 | Secure-by-default privileges: change the defaults in the first migration, plus an automated guard test (over per-migration revokes, or revokes with a guard only) | A forgotten grant fails closed as "permission denied" instead of silently exposing a table, and a guard test catches deliberate over-granting that defaults cannot. Costs: every table needs explicit grants (including `problem_reports`); defaults are per creating role (only `postgres` is covered, which owns migration-created and Studio-API-created tables); hosted parity is unverified |
 | 2026-11-07 | Scenario puzzles stored as a `jsonb` scene description drawn by one generic SVG renderer (over template plus parameters, pre-drawn images, or fully relational scene tables), with layered bad-data handling, broader accessibility, and human visual verification | Scenarios become data, not code, so content can grow without new components, and animation stays possible. Costs: the generic renderer must be built before the first scenario works; invalid scenes need validation and a safe fallback; the AI reviewer cannot see pictures, so a human checks the rendering (likely needing an admin preview page); the solution must stay out of the browser-readable scene |
 | 2026-11-03 | Pin Node 24 (over 22) | Current LTS and what Abdulrahman already runs; Next.js needs >=20.9. Enforced with `.nvmrc`, `engines`, and `engine-strict=true` so a wrong Node fails at install |
+| 2026-11-08 | Urgent special case: compress explanations and ship a working, deployed learning demo, then go back and repay | Abdulrahman's deadline. Decisions still need his approval; shortcuts are tracked in "Temporary shortcuts and debt" so they are repaid, not forgotten |
+| 2026-11-08 | Questions belong to a section (`questions.section_id`), over a join table or a purpose flag | Lesson checks live inside sections, so this is the simplest fit. Costs: the practice test must query across sections or the schema changes; a question lives in one place |
+| 2026-11-08 | Progress in localStorage only for the demo (over none, or anonymous sign-in + Supabase) | Fastest working persistence. Costs: not the decided architecture, lost when browser data is cleared, per device. Debt #2 |
+| 2026-11-08 | Deploy on Vercel with hosted Supabase (over Netlify, Cloudflare) | Most direct Next.js path and documentation. Hosted default grants must be verified (debt #6) |
+| 2026-11-08 | Four lessons in the demo (over two, or one polished), content verified by Abdulrahman only | Fuller learning path. The riskiest option because correctness matters and there is no AI review yet. Drafted from the official guide text with section citations; seeded as `draft`, published by `publish.sql` after a human check. Debt #1 |
+| 2026-11-08 | Lesson checks graded by `check_choice` (`SECURITY DEFINER`, returns right/wrong plus explanation), allow-listed in the guard test | Keeps `is_correct` out of the browser. It is an oracle if looped; accepted for lessons, never for the practice test. Debt #4 |
+| 2026-11-08 | Visual style resembles Khan Academy's feel (white header, navy hero, indigo actions, rounded cards, mastery-style skill dots) but with original artwork, logo, wording and driving-specific content | Abdulrahman's request: resemble, not copy; no Khan branding or assets |
+| 2026-11-08 | Turn off supabase-js's own read retries (`db: { retry: false }`) and keep one retry layer of ours with an 8 s timeout | Measured: its 4 attempts stacked with ours made a stalled database take about 78 s to fail; now about 16 s |
+| 2026-11-08 | Error page uses `retry()` (refetch), not `reset()` | Tested: `reset()` kept showing the failure after the database recovered |
+| 2026-11-08 | Grant `questions.status` to the browser roles (the only `status` column granted) | The `choices` read policy reads it, and a policy that reads another table is checked against the caller's column privileges. Found by a failing test. It always reads `published` for a visitor |
 
 ## Progress log
 - 2026-11-03: Planning session completed. Stack, content storage, auth, verification and reporting decided. Repo initialized with docs and `.gitignore`.
@@ -217,3 +259,4 @@ Not verified, gaps:
 - 2026-11-07: Finalized the answer-hiding design (option A) after Abdulrahman confirmed the separate `choices` table. Turned on anonymous sign-ins in `supabase/config.toml` and verified a guest token has role `authenticated`. Tested option A on throwaway tables against local Supabase (REST as visitor and guest, SQL as each role, `pg_stats`, a Realtime WebSocket): no leak found. Found that new public tables grant everything to the browser roles by default, that new functions are executable by `PUBLIC`, and that a per-choice check function is an answer-key oracle. Not verified: GraphQL (extension off locally), hosted Supabase defaults. Scratch tables dropped. Committed and merged via PR #6. The app was quit mid-edit once; the docs were redone from a clean state.
 - 2026-11-07: Built secure-by-default privileges (first migration `20261108050310_secure_default_privileges.sql`) and the pgTAP guard test (`npm run db:test`), as decided (change the defaults, plus a guard test). Test-first: the guard failed 4 of 8 before the migration and passed 8 of 8 after `db:reset`; four deliberate mistakes (re-granted defaults, no RLS, table-wide SELECT on `choices`, function granted to `anon`) were each caught by the right check. Also checked that extensions are unaffected and that tables made through Studio's API are owned by `postgres` (covered). Added architecture section 7 (access-control layers). Not verified: hosted Supabase, GraphQL, Studio UI buttons. Committed on `feat/secure-default-privileges` (PR #6 had already squash-merged the earlier config and findings commits, so these three were moved to a fresh branch from `main`).
 - 2026-11-07: Decided the scenario data model: option A, a `jsonb` scene description drawn by one generic SVG renderer, with layered bad-data handling, accessibility beyond screen readers, and a human visual check. Recorded the consequence that approval likely needs a rendered preview page, and that the solution stays in `choices`. Nothing built yet. The rendering approach (SVG / CSS / Motion) and how scenarios attach to questions are still open.
+- 2026-11-08: Urgent demo build on `feat/learning-slice` after Abdulrahman asked for a deployed full-stack learning feature with shorter explanations and a debt-repayment pass afterwards. He chose: section-owned questions, localStorage-only progress, Vercel, four lessons. Built the four content tables, RLS, column grants and `check_choice` (migration `20261108120000_learning_content.sql`), the 22-check pgTAP suite, seed content drafted from the real Driver Guide text (fetched from dol.wa.gov, cited per section) with `publish.sql` as the human gate, typed Supabase client, header with a steering-wheel logo, a Khan-style home page, lesson pages with graded checks, and error and 404 pages. Committed as separate commits as he asked. Testing found and fixed: `choices` policy needed `questions.status` granted; stacked retries made a frozen database take over a minute (library retry now off, about 16 s); the error page's `reset()` did not recover (now `retry()`); Mermaid diagram 9 had a semicolon in a Note. Abdulrahman hit "buttons do nothing": reproduced as a LAN-IP-versus-localhost dev-server issue (page not hydrated), documented in Commands. Not done: deploy, content verification, PR. The debt is in "Temporary shortcuts and debt".

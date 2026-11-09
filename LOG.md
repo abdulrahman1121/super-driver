@@ -33,9 +33,10 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - [ ] Mini 2D driving simulation
 
 ## In Progress
-- Local Supabase works on my machine. Waiting on Collins to run it too. Feature split is decided, so next is the database schema (`feat/v1-database-schema`), which Collins's `problem_reports` table depends on
+- Urgent demo: the learning feature (4 lessons with graded checks) is built and working locally on `feat/learning-slice`. Next is deploying it (hosted Supabase + Vercel), checking the content myself, and then paying back the shortcuts listed in `CLAUDE.md` under "Temporary shortcuts and debt".
 
 ## Changelog (done)
+- **2026-11-08**: Urgent demo build. Built the learning feature end to end: four content tables with row and column protection, a grader function that keeps the correct answer out of the browser, 22 database tests, four WA lessons (17 questions) drafted from the real Driver Guide, a home page and lesson pages with graded checks and a steering-wheel logo, and friendly error pages. Tested the failure cases for real (frozen database, dropped network, corrupted browser storage). Not deployed yet and the content is not verified yet.
 - **2026-11-07**: Decided how scenario puzzles are stored: a `jsonb` scene description drawn by one generic SVG renderer, with bad-data handling, broader accessibility, and my own visual check. Nothing built yet.
 - **2026-11-07**: Added the first migration, which makes new tables, sequences and functions closed to the browser roles by default, and an automated guard test (`npm run db:test`). The test failed before the migration and passed after it, and it caught each of four mistakes I made on purpose.
 - **2026-11-07**: Turned on anonymous sign-ins locally and confirmed a guest token has the `authenticated` role. Tested the hidden-answer design (option A) against local Supabase; no leak found through REST, SQL, `pg_stats` or Realtime. Found that new tables grant everything to the browser roles by default and that a per-choice check function reveals the key if looped over. Dropped all scratch tables.
@@ -49,6 +50,11 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 ## Decisions & Open Questions
 
 ### Decisions
+- **2026-11-08: Speed up for a deadline, but keep a debt list.** I asked for a working, deployed learning demo fast, with shorter explanations. Decisions still came to me. Every shortcut is written down in `CLAUDE.md` so we pay it back later instead of forgetting it.
+- **2026-11-08: Questions belong to a section.** Checks live inside a lesson section, so this was the simplest fit. The cost is that the practice test will have to look across sections, or the schema changes.
+- **2026-11-08: Progress in localStorage only, for the demo.** It was the fastest thing that works, but it is not the real design (anonymous sign-in plus a progress table). Progress is lost if browser data is cleared.
+- **2026-11-08: Vercel, with four lessons.** Vercel is the most direct path for Next.js. Four lessons make a fuller demo, but it is the riskiest choice because I am the only reviewer of driving-law content for now.
+- **2026-11-08: Resemble Khan Academy's feel, not copy it.** Clean white header, navy hero, indigo buttons, rounded cards and skill dots, but original logo, wording and driving content.
 - **2026-11-03: npm as the package manager.** It ships with Node and matches the Next.js and Supabase docs, so Collins installs nothing extra. pnpm and bun are faster, but that barely matters for a two-person, ~5-day project. We commit the lockfile, install with `npm ci`, and pin Node.
 - **2026-11-03: App at the repo root, not `web/`.** One `package.json`, and Vercel/CI/`create-next-app` all default to the root. `supabase/` already gives the backend its own folder. The cost is Next.js config files sharing the root.
 - **2026-11-03: Tailwind first, shadcn/ui added component by component.** I want to learn Tailwind directly before adding Radix and the `cn()` helper on top. shadcn copies component source into the repo, so we add only what we need (dialogs, progress bars, radio groups). Collins and I agree on one person adding a component and merging first, to avoid conflicts in `components/ui/` and `package.json`.
@@ -69,6 +75,8 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - **2026-11-03: V1 is guest-only.** The sign-in nudge waits for V2, because a nudge without a working sign-in would be a broken promise.
 
 ### Open questions
+- In what order do we repay the demo shortcuts (progress on the server, AI review, content hash, rate limit, hosted checks)?
+- Do we want a dark theme, and what accessibility bar (WCAG 2.2 AA?) do we hold ourselves to?
 - How do we draw scenario puzzles in V1 (plain SVG, SVG + CSS, SVG + Motion)?
 - Should the reviewer get the whole PDF or search chunks of it?
 - How does the practice test grade without letting per-choice checks reveal the answer key?
@@ -77,6 +85,11 @@ My personal record of building SuperDriver with Collins for TCSS 490.
 - Which email service?
 
 ## Reflections & Lessons Learned
+- **Two retry layers multiply.** The library retried failed reads 4 times and my code retried again, so a frozen database took about 78 seconds to give up. I only found it by freezing the database on purpose and timing it. Now there is one retry layer and the worst case is about 16 seconds.
+- **A button that recovers nothing is worse than no button.** The error page's "Try again" used `reset()`, which kept showing the old error after the database came back. This version of Next has `retry()` for that. I only saw it because I unfroze the database and clicked.
+- **A policy that reads another table is checked against your column permissions.** My `choices` policy looked at `questions.status`, which the browser could not read, so everything failed closed with "permission denied". A failing test showed it; the fix leaks nothing because the column always says `published` for a visitor.
+- **"It works on my machine" can depend on the address bar.** The buttons did nothing at the LAN address and worked at `localhost`. The page loaded but never woke up (hydration was blocked by the dev server). Production does not have this problem.
+- **Reading the primary source beat trusting memory.** I downloaded the official Driver Guide text and quoted from it, which turned up details I would have gotten wrong or vague (like the exact 4-way stop rules).
 - **A test only counts once you've seen it fail.** The guard failed 4 of 8 before the fix and passed after. Then I broke the setup four different ways on purpose, and each break turned exactly the right check red. Without that, a green test could just mean the test checks nothing.
 - **Defaults decide your security more than your code does.** A brand-new table in Supabase gives the public key every permission, including deleting rows, until you revoke it. The design only holds if every table starts with revoke-then-grant.
 - **Hiding a column means hiding it from queries, not just from output.** If someone can filter or sort by a column they can't read, they can still work out its values. I tested filtering, sorting, counting and joining on the hidden column, not just selecting it.
