@@ -2,6 +2,11 @@ import Link from "next/link";
 import { OverallProgress, SkillDots } from "@/components/SkillProgress";
 import { getLessons } from "@/lib/content";
 
+// ISR: this page is built once, then rebuilt in the background at most every 60
+// seconds. Without this it would be frozen at build time, and lessons published
+// later would not appear until the next deploy.
+export const revalidate = 60;
+
 export default async function Home() {
   const lessons = await getLessons();
   const allQuestionIds = lessons.flatMap((l) => l.questionIds);
