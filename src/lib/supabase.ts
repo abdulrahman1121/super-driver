@@ -24,12 +24,21 @@ export function createSupabase(): Supabase {
   }
   return createClient<Database>(url, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    // supabase-js retries failed reads on its own (4 attempts, 1s/2s/4s pauses),
+    // and getLesson/getLessons retry too. Stacked with an 8s timeout that made a
+    // stalled database take ~78s to fail (measured). One retry layer only: ours.
+    db: { retry: false },
     global: {
-      fetch: (input, init) =>
-        fetch(input, {
-          ...init,
-          signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        }),
+      fetch: (input, init) => {
+        // supabase-js passes its own signal, so the timeout must be combined
+        // with it (either one aborts the request), not used only when absent.
+        const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+        const signal =
+          init?.signal && typeof AbortSignal.any === "function"
+            ? AbortSignal.any([init.signal, timeout])
+            : (init?.signal ?? timeout);
+        return fetch(input, { ...init, signal });
+      },
     },
   });
 }
