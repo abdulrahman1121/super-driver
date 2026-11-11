@@ -28,7 +28,7 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 ## Repository
 
 - Name: `super-driver`
-- Working branch: `feat/learning-slice` (the urgent demo build, not yet merged; PR to be opened by Abdulrahman). `main` is at the scenario-docs squash merge (#8). The scaffold branch was merged via PR #1 (as a merge commit, not a squash) and deleted locally and on the remote
+- Current branch: `main`, at the learning-slice squash merge (PR #9, `d7b4988`). `feat/learning-slice` and `docs/scenario-data-model` were squash-merged but still exist on GitHub (not deleted remotely yet; local copies are deleted). The scaffold branch was merged via PR #1 (as a merge commit, not a squash) and deleted locally and on the remote
 - GitHub is set to squash-only merging (changed by Abdulrahman on 2026-11-07), so `main` keeps one commit per feature from now on
 - Branching: one branch per big addition, `type/short-description` (Conventional Commit types), merged into `main` after review. `main` must always work.
 - Commits: Conventional Commits; never commit without explicit user approval of the changes and the message.
@@ -84,14 +84,14 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 - **Verification:** the AI reviewer checks the written explanation against the Driver Guide but cannot see the picture, so Abdulrahman checks the rendered scene next to its description before approving.
 
 ## V1 scope
-- [ ] All WA Driver Guide content and driving laws as lessons
-- [ ] Lessons with embedded checks ("check your understanding")
-- [ ] Scenario puzzles (static or lightly animated intersections: right-of-way, four-way stops, school zones)
+- [ ] All WA Driver Guide content and driving laws as lessons (owner: Collins; 4 of the lessons are drafted and live, the rest are not started)
+- [ ] Lessons with embedded checks ("check your understanding") (owner: Collins for the remaining content; the mechanism is built and live)
+- [ ] Scenario puzzles (owner: Abdulrahman) (static or lightly animated intersections: right-of-way, four-way stops, school zones)
 - [ ] Timed practice knowledge test (40 questions, 80% pass)
 - [ ] Guest mode via anonymous sign-in, with the localStorage pending-saves queue
 - [ ] Progress dashboard
 - [ ] Content verification pipeline (AI review + human approval)
-- [ ] Report-a-problem with email + GitHub issue notifications and spam protection
+- [ ] Report-a-problem with email + GitHub issue notifications and spam protection (owner: Collins)
 
 ## V2 scope
 - [ ] State picker (multi-state content)
@@ -101,12 +101,15 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 - [ ] Mini top-down 2D driving simulation (Rive + canvas, TBD)
 
 ## Current state
-**2026-11-08, urgent demo build ("learning slice").** Abdulrahman asked to compress work so a full-stack site showing the learning feature is working and deployed, with shorter explanations (decisions still approved by him), then to go back and repay the shortcuts. Built on `feat/learning-slice` (unmerged, not yet deployed):
-- Schema: `lessons`, `sections`, `questions`, `choices` with RLS, column grants and the `check_choice` grader (migration `20261108120000_learning_content.sql`). Questions belong to a section.
-- Content: 4 WA lessons, 8 sections, 17 questions, 59 choices drafted from the official Driver Guide text (`supabase/seed.sql`, all `draft`, **unverified by a human or AI reviewer**). `supabase/publish.sql` is the human publish gate. Locally everything is currently published.
-- App: header with "SuperDriver" and a steering-wheel logo, Khan-style home page (hero, course cards, skill dots, progress bar), lesson pages with graded "check your understanding" questions, friendly error and 404 pages. Progress is localStorage only.
-- Verified: 22 pgTAP checks pass; real REST calls as a visitor; the quiz in a browser including wrong answer, retry, network drop, corrupt localStorage; production build; a frozen database fails in about 16 s and recovers (`retry()`).
-- NOT done: deploy (needs Abdulrahman to create the hosted Supabase and Vercel projects and share the project URL and anon key), content verification, everything under "Temporary shortcuts and debt".
+**2026-11-10: the urgent demo is shipped and live.** PR #9 squash-merged the learning slice into `main` (`d7b4988`). It is deployed on Vercel at https://super-driver-seven.vercel.app, backed by the hosted Supabase project (ref `cppzijzrzqhwnekcomje`). The hosted project's URL and public (publishable) key are set as the two `NEXT_PUBLIC_SUPABASE_*` env vars on Vercel; they are public values, but keep them out of committed files. Never put the service-role or secret key anywhere in this repo or in the browser.
+
+What is live: the four content tables with RLS, column grants and the `check_choice` grader (migration `20261108120000_learning_content.sql`); 4 WA lessons, 8 sections, 17 questions, 59 choices from the official Driver Guide (`supabase/seed.sql`), which Abdulrahman checked against the guide and published with `supabase/publish.sql` on 2026-11-09; the header with the "SuperDriver" wordmark and steering-wheel logo, a Khan-style home page with skill dots and a progress bar, lesson pages with graded checks, friendly error and 404 pages. Progress is localStorage only (demo shortcut).
+
+Verified on the live site (2026-11-09): all routes, a full quiz run (0.2-0.5 s per check), wrong answer and retry, dropped network and Retry, a 375 px mobile view with no horizontal scroll; a scan of the 10 shipped JS files plus the HTML found no secrets, no JWTs, no database URL and no answer text. Verified against the hosted database as a visitor (and through `supabase-js` with the publishable key): published rows readable; `is_correct`, `explanation` and `status` refused; `select=*` on `choices` refused; insert, update and delete refused; the grader returns right, wrong and empty for an unknown id; `pg_graphql` is not enabled there. Not verified: Realtime, keyboard-only and screen-reader use, Safari/Firefox, a real phone.
+
+**Known problem, fix decided but ON HOLD (Abdulrahman paused it on 2026-11-10):** all 17 correct answers are the first choice (confirmed against the live database), so always picking the first option scores 100%. Decided fix: (1) shuffle each question's choices once per page load in the browser (not again on "Try again"), with the choices hidden until the shuffle runs so they do not visibly jump; (2) reorder the choices in `seed.sql` so correct answers vary, with a positions-only patch SQL for the hosted database (re-running `seed.sql` on an existing database resets statuses to `draft` and can violate `unique (question_id, position)` when reordering, so use a patch, not a re-seed); (3) a guard against repeat clicks while an answer is being checked; (4) a taller tap target on the "← All lessons" link (18 px now). Until it ships, **new content must put the correct answer in varied positions** (see the Collins section).
+
+NOT done: everything under "Temporary shortcuts and debt", the rest of the V1 scope.
 
 Earlier state: planning complete and the scaffold merged into `main` (PR #1, merge commit `e5036e5`, 2026-11-07). Collins has been invited and has cloned the repo; he must pull the `.gitignore` fix.
 
@@ -139,7 +142,32 @@ These were taken on purpose to ship a demo fast. Abdulrahman will verify the con
 | 12 | **Mobile and other browsers untested** | Test on phones, Safari, Firefox | Manual pass, then automate | Layout or the timeout code (`AbortSignal.any`) may misbehave on older browsers |
 | 13 | **Quiz answers lock after a correct answer** and there is no review mode, no practice test, no scenarios, no search, no accounts | Full V1 scope | Per the V1 scope list | The demo shows one feature only |
 
+Updates to the table above: **#1** Abdulrahman checked the 4 lessons against the guide before publishing them on hosted (2026-11-09); there is still no AI review and no content hash, and everything Collins adds needs the same human check. **#4** demonstrated on the live site: all 59 choices were scanned through the grader in seconds, which is how the all-first-answers bug was confirmed. **#6** partly repaid: the hosted visitor checks pass (see "Current state"), `pg_graphql` is not enabled there, and the publishable key works with `supabase-js`; Realtime is still untested. New: **#14** no guard against repeat clicks on a quiz choice, and a late reply can overwrite a newer one (harmless because the check only reads); **#15** the "← All lessons" link is 18 px tall, under the 44 px touch guideline.
+
 Also: the 2026-11-08 explanations were shortened by request. Abdulrahman wants the full-depth write-up of this build later ("make up the sped up time"): why each choice, the failure analysis, and the lessons. Owed items: a walkthrough of how RLS plus column grants interact on the four tables, why `questions.status` had to be granted, how retries stack, and `retry()` versus `reset()`.
+
+## Collins: V1 content assignment (from 2026-11-10)
+Abdulrahman assigned Collins two more V1 items, on top of report-a-problem: **(1) adding the WA Driver Guide to the project, and (2) finishing the lessons with embedded checks** (the rest of the guide as lessons, each section with "check your understanding" questions). The assignment was given in one sentence, so the details below are the agent's reading of it. Collins and Abdulrahman should confirm or correct them before large work starts.
+
+**Reading of the assignment (confirm):**
+- *Adding the guide* means getting the official guide text into the project in a form we can cite from: it is the source for lesson content and the text the AI reviewer will check against (quote and page number must be verifiable in code). Where it lives and in what format is an open decision (below), not Collins's to pick alone.
+- *Finishing the lessons* means writing the remaining lessons, sections, questions and choices as seed content, following the rules below. The mechanism (tables, grader, lesson pages, quiz) already exists; this is mostly content, not new features.
+
+**Get set up:** `git pull` on `main`, `nvm use`, `npm ci`, copy `.env.example` to `.env.local` and fill it from `npm run db:status` (local demo keys only), `npm run db:start`, `npm run db:reset` (loads `supabase/seed.sql` as drafts), then publish locally with `supabase/publish.sql` (command in "Commands") and run `npm run dev`. **Open http://localhost:3000, not the LAN address**, or the buttons will not work. Collins's machine has not been tested yet.
+
+**Content rules (all of these matter):**
+1. IDs are stable text keys such as `wa-...`, never renamed (progress will reference them).
+2. Every section and question carries a `source` that points to the exact Driver Guide section. Use the official WA DOL guide only; do not copy from other sites.
+3. New content is inserted as `draft`. A human checks it against the guide before `publish.sql` runs. There is still no AI review, so the human check is the only gate.
+4. Every question has exactly one correct choice, and **every choice has an explanation**. `publish.sql` refuses a question without exactly one correct choice or with fewer than two choices.
+5. **Do not put the correct answer first every time.** The first batch did, and it is a live bug (see "Current state"). Vary the position of the correct choice across questions.
+6. Plain, friendly wording; questions must make sense on their own. Section `body` is plain text: a blank line starts a paragraph and lines beginning with `- ` are bullets. No HTML or Markdown; it is rendered as text.
+7. Schema rules still hold: never grant table-wide `SELECT` on `choices`; any new table needs RLS and explicit column grants, and `npm run db:test` must pass (update the guard's allow-list only on purpose). The correct answer must never be readable from the browser.
+8. Do not re-run `seed.sql` against the hosted database to change existing rows' order (see the answer-order note above); ask Abdulrahman for a patch.
+
+**Process:** one branch per group of lessons (`feat/lessons-<topic>`), commit one logical change at a time, open a PR, and Abdulrahman reviews and squash-merges. Before a PR: `npm run lint`, `npm run format:check`, `npm run build`, `npm run db:test` all pass. Abdulrahman owns the hosted Supabase project and the Vercel project, so he applies seed and publish SQL to the hosted database (a manual step in the Supabase SQL editor) until we decide otherwise. Commit rules in the global instructions apply: single-line Conventional Commit messages, no trailers, and never commit without Abdulrahman's approval.
+
+**Risks to watch:** Collins now owns two slices (report-a-problem plus content), so the content workload may squeeze the report-a-problem work; the reviewer pipeline (Abdulrahman) depends on how the guide text is stored, so that decision should come early; and content errors are the biggest risk to users, so the human check against the guide must not be skipped to save time.
 
 ## Local Supabase (verified 2026-11-07, Abdulrahman's machine)
 - `npm run db:start` works with Docker 29.9.2 on macOS (Apple silicon). First run pulls ~12 images (a few minutes); later starts are fast. Postgres 17.11, 12 containers, all healthy.
@@ -193,10 +221,12 @@ Not verified, gaps:
 3. ~~Decide the scaffold options~~ and ~~the feature split~~ Done (see Decisions log). Next: finalize the schema, since Collins's `problem_reports` table depends on the content tables.
 4. ~~Branch `chore/scaffold-nextjs-supabase`~~ Merged (PR #1). Collins should pull `main`, `nvm use`, and run `npm ci`.
 5. ~~Abdulrahman: Docker + local Supabase~~ Done and verified (see "Local Supabase"). Collins still needs to run `npm run db:start` on his machine.
-6. ~~Branch `feat/v1-database-schema`~~ Content tables built on `feat/learning-slice` (section-owned questions, no `problem_reports` yet).
-7. **Deploy the demo** (in progress): Abdulrahman creates the hosted Supabase project and a Vercel project; share the project URL and anon key only (never the service-role key). Then: link and push migrations, paste `seed.sql`, verify the content, run `publish.sql`, set the two `NEXT_PUBLIC_SUPABASE_*` env vars on Vercel, deploy, and repeat the visitor REST checks against the hosted project (debt #6).
-8. **Repay the debt** above, in an order Abdulrahman picks; each repayment is its own decision and branch.
-9. Write the full-depth learning notes owed for this build (see the debt section).
+6. ~~Branch `feat/v1-database-schema`~~ Content tables built and merged in PR #9 (section-owned questions; no `problem_reports` yet).
+7. ~~Deploy the demo~~ Done 2026-11-09: PR #9 merged, live on Vercel with the hosted Supabase project, content checked and published, visitor checks run against the hosted database.
+8. **Answer-order fix** (Abdulrahman; decided, on hold): shuffle once per page load, reorder the seed plus a hosted patch, double-click guard, bigger tap target (see "Current state").
+9. **Collins: add the WA Driver Guide and finish the lessons with embedded checks** (see "Collins: V1 content assignment"). First step: Collins confirms the reading of the assignment and proposes where the guide text should live.
+10. **Repay the debt** above, in an order Abdulrahman picks; each repayment is its own decision and branch.
+11. Write the full-depth learning notes owed for this build (see the debt section).
 
 ## Open decisions
 - Scaffold options (decided: npm, app at root, Node 24, Tailwind with shadcn/ui added on demand, ESLint + Prettier, Supabase CLI as a project dependency). All scaffold options are settled.
@@ -207,6 +237,8 @@ Not verified, gaps:
 - The scenario rendering approach (plain SVG / SVG + CSS transitions / SVG + Motion) is still open and affects the renderer, not the stored format.
 - How the human approval step is done (Supabase dashboard vs. a small admin page).
 - Where the reviewer runs (local script vs. Edge Function) and which AI model/API.
+- Where the WA Driver Guide text lives and in what format (a file in the repo, or a Supabase table; with page markers so the reviewer's quote and page number can be checked in code). This also settles the reviewer grounding decision above. Abdulrahman decides; Collins proposes options with tradeoffs first. Open questions to settle with it: whether the full guide may be stored in the repo, and how the text is extracted from the PDF.
+- Who applies content to the hosted project (today only Abdulrahman can). Options include giving Collins access, or a repeatable seeding script or CI step (debt #7).
 - Email provider.
 
 ## Decisions log
@@ -222,7 +254,8 @@ Not verified, gaps:
 | 2026-11-03 | V1 guest-only; sign-in nudge + Google linking in V2 | A nudge needs a working sign-in, so both ship together |
 | 2026-11-03 | Both devs run Supabase locally with Docker | Avoids shared-DB collisions and environment drift |
 | 2026-11-03 | Feature-by-feature work split | Superseded on 2026-11-07 by the ownership row below. Original reasoning: both devs learn the full stack; requires an agreed shared contract first |
-| 2026-11-07 | Ownership: V1 Collins = report-a-problem only; Abdulrahman = all other V1 features. V2 (tentative) Collins = sign-in nudge + mini driving simulation; Abdulrahman = state picker, Google sign-in, account merging | Report-a-problem is the most self-contained V1 slice (own table, Edge Function, email, GitHub), so merge conflicts are unlikely. Risks accepted: V1 is lopsided (9 of 10 items on Abdulrahman against a 2-day target); Collins's table depends on the content schema (type, ID, hash) and his button must be placed in Abdulrahman's pages, so he can build the Edge Function/email/GitHub parts against a stub table first; the V2 nudge needs working Google sign-in before it can be tested |
+| 2026-11-07 | Ownership: V1 Collins = report-a-problem only; Abdulrahman = all other V1 features. V2 (tentative) Collins = sign-in nudge + mini driving simulation; Abdulrahman = state picker, Google sign-in, account merging | Report-a-problem is the most self-contained V1 slice (own table, Edge Function, email, GitHub), so merge conflicts are unlikely. Risks accepted: V1 is lopsided (9 of 10 items on Abdulrahman against a 2-day target); Collins's table depends on the content schema (type, ID, hash) and his button must be placed in Abdulrahman's pages, so he can build the Edge Function/email/GitHub parts against a stub table first; the V2 nudge needs working Google sign-in before it can be tested. **V1 part superseded on 2026-11-10 by the row below** |
+| 2026-11-10 | Ownership update (V1): Collins also owns adding the WA Driver Guide and finishing the lessons with embedded checks, in addition to report-a-problem. Abdulrahman keeps scenarios, the practice test, progress and sign-in, the verification pipeline, the dashboard and the pending answer-order fix | Abdulrahman's call once the urgent demo had shipped: the content is the largest remaining V1 piece and can proceed in parallel with the engine work that depends on the schema. Reasoning inferred from context; Abdulrahman to confirm or edit. Risks: Collins now has two slices; the reviewer pipeline depends on where the guide text lives (open decision); content errors reach learners, so the human check against the guide cannot be skipped; the assignment was one sentence, so the scope reading in "Collins: V1 content assignment" needs confirming |
 | 2026-11-03 | npm as package manager (over pnpm, bun) | Ships with Node and is the default in Next.js/Supabase docs, so nothing extra for Collins to install; pnpm/bun gains are marginal for a 2-person, ~5-day project. Commit `package-lock.json`, use `npm ci` for installs, and pin Node so both devs match |
 | 2026-11-03 | Next.js app at the repo root (not `web/`) | One `package.json`; Vercel/CI/`create-next-app` default to root; `supabase/` already gives the backend its own directory. Caveat: Next config files share the root. Check `create-next-app` doesn't overwrite our `.gitignore` |
 | 2026-11-03 | Tailwind first; shadcn/ui added component by component (over CSS Modules, or shadcn from day one) | Abdulrahman is learning, so plain Tailwind first, then shadcn/Radix for accessible pieces (dialogs, progress, radio groups). Components are copied into `components/ui/`, so we own them. Only one dev adds a given component at a time to avoid merge conflicts. Verify current Tailwind v4 / shadcn init steps against official docs at scaffold time |
@@ -260,3 +293,4 @@ Not verified, gaps:
 - 2026-11-07: Built secure-by-default privileges (first migration `20261108050310_secure_default_privileges.sql`) and the pgTAP guard test (`npm run db:test`), as decided (change the defaults, plus a guard test). Test-first: the guard failed 4 of 8 before the migration and passed 8 of 8 after `db:reset`; four deliberate mistakes (re-granted defaults, no RLS, table-wide SELECT on `choices`, function granted to `anon`) were each caught by the right check. Also checked that extensions are unaffected and that tables made through Studio's API are owned by `postgres` (covered). Added architecture section 7 (access-control layers). Not verified: hosted Supabase, GraphQL, Studio UI buttons. Committed on `feat/secure-default-privileges` (PR #6 had already squash-merged the earlier config and findings commits, so these three were moved to a fresh branch from `main`).
 - 2026-11-07: Decided the scenario data model: option A, a `jsonb` scene description drawn by one generic SVG renderer, with layered bad-data handling, accessibility beyond screen readers, and a human visual check. Recorded the consequence that approval likely needs a rendered preview page, and that the solution stays in `choices`. Nothing built yet. The rendering approach (SVG / CSS / Motion) and how scenarios attach to questions are still open.
 - 2026-11-08: Urgent demo build on `feat/learning-slice` after Abdulrahman asked for a deployed full-stack learning feature with shorter explanations and a debt-repayment pass afterwards. He chose: section-owned questions, localStorage-only progress, Vercel, four lessons. Built the four content tables, RLS, column grants and `check_choice` (migration `20261108120000_learning_content.sql`), the 22-check pgTAP suite, seed content drafted from the real Driver Guide text (fetched from dol.wa.gov, cited per section) with `publish.sql` as the human gate, typed Supabase client, header with a steering-wheel logo, a Khan-style home page, lesson pages with graded checks, and error and 404 pages. Committed as separate commits as he asked. Testing found and fixed: `choices` policy needed `questions.status` granted; stacked retries made a frozen database take over a minute (library retry now off, about 16 s); the error page's `reset()` did not recover (now `retry()`); Mermaid diagram 9 had a semicolon in a Note. Abdulrahman hit "buttons do nothing": reproduced as a LAN-IP-versus-localhost dev-server issue (page not hydrated), documented in Commands. Not done: deploy, content verification, PR. The debt is in "Temporary shortcuts and debt".
+- 2026-11-10: The urgent demo shipped: PR #9 (squash) merged the learning slice into `main` and Abdulrahman deployed it to Vercel (https://super-driver-seven.vercel.app) with a hosted Supabase project. Testing it live found one real problem (all 17 correct answers are the first choice) plus a few small ones; Abdulrahman chose a browser shuffle plus a seed-order fix, agreed to shuffle once per page load and the extras, then put the fix on hold. He then assigned Collins the WA Driver Guide and the remaining lessons with embedded checks. This update (state, the new Collins section, open decisions, decisions log) was pushed directly to `main` at his explicit request, instead of through a branch and PR.
