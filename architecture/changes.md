@@ -2,6 +2,14 @@
 
 Newest first. Each entry says what changed, why, and where the decision is recorded.
 
+## 2026-11-11: Content split into per-lesson files with a scoped publish step (planned)
+
+- Each lesson group will live in its own SQL file in `supabase/content/` (for example `wa-traffic-signs.sql`) instead of one growing `supabase/seed.sql`, and publishing will be limited to the lessons named instead of every row.
+- Why: `supabase/publish.sql` publishes every row, so publishing one checked lesson would publish every unchecked draft with it; pasting all of `seed.sql` into the hosted SQL editor sets live rows back to `draft`; and one shared file makes every lessons PR collide.
+- Not built: how `db:reset` loads the files (`[db.seed] sql_paths` in `supabase/config.toml` already accepts a list and glob patterns), how the scoped publish receives lesson IDs, and whether the four live lessons move out of `seed.sql`. See section 3 of `data-flow.md`.
+- Decided the same day, content only (no data-flow change): the lesson scope, all driving content plus one short license lesson.
+- Decisions log: see the 2026-11-11 rows in `CLAUDE.md`.
+
 ## 2026-11-08: Learning slice built: lessons, graded checks, localStorage progress (built)
 
 - Four content tables (`lessons`, `sections`, `questions`, `choices`) with RLS (published rows only) and column grants (the browser cannot read `is_correct`, `explanation` or `status`, except `questions.status`). `check_choice` is a `SECURITY DEFINER` function that grades one choice and returns right or wrong plus the explanation. Questions belong to a section (decided option A). Migration `20261108120000_learning_content.sql`.
