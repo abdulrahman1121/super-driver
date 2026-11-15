@@ -2,7 +2,7 @@
 
 Status labels: **built**, **planned**, **pending decision**. Planned parts are dashed and grey. See [README.md](README.md) for how to update this file.
 
-Last checked against the repo: 2026-11-08.
+Last checked against the repo: 2026-11-15.
 
 ## 1. System overview
 
@@ -324,6 +324,7 @@ sequenceDiagram
     Note over N,DB: 8 s timeout, one retry, then give up (about 16 s worst case)
     N-->>B: Friendly error page with Try again
   end
+  B->>B: Pick a random seed for this visit, shuffle each question's choices (hidden until ready)
   B->>DB: rpc check_choice(choice id)
   alt answered
     DB-->>B: is_correct and explanation
@@ -335,7 +336,7 @@ sequenceDiagram
   end
 ```
 
-**What it shows:** pages are rendered on the server and never contain answers. Each answer is graded by the database, one choice at a time, and only then does the browser learn whether it was right. The home page is built ahead of time and refreshed at most once a minute (ISR). Lesson pages are rendered on request.
+**What it shows:** pages are rendered on the server and never contain answers. Each answer is graded by the database, one choice at a time, and only then does the browser learn whether it was right. Each time a learner enters a lesson, the browser picks a new random seed and shuffles every question's choices, so the stored order never shows. The home page is built ahead of time and refreshed at most once a minute (ISR). Lesson pages are rendered on request.
 
 **Temporary shortcuts (debt, see `CLAUDE.md`):** progress lives only in this browser's localStorage, with no sign-in and no database copy, so clearing browser data erases it and it does not follow the learner to another device. The decided design (section 2) replaces it.
 
@@ -347,4 +348,7 @@ sequenceDiagram
 - Unknown or unpublished lesson: a normal 404, not an error.
 - Corrupt or hand-edited localStorage (bad JSON, wrong shape) is ignored, and the page still renders.
 - localStorage blocked: progress still works for the current visit, held in memory.
+- Choice order: the server renders the choices in stored order but hidden. The browser picks one seed per visit to the lesson and shuffles, and does not reshuffle on "Try again", so the order does not jump after an answer. If hydration fails the lists stay hidden, and the quiz could not check answers without JavaScript anyway.
+- Repeat clicks while a check is running are ignored, and the guard is released in `finally`, so Retry still works after a failure (checked: a Retry while offline sends a new request and recovers when the network returns).
+- Hosted lessons 1 to 4 still store the correct answer first. Only the browser shuffle hides it, so the stored order is not a protection (debt #16 in `CLAUDE.md`).
 - Not verified: behavior on a hosted Supabase project, and on phones or other browsers.
