@@ -2,6 +2,14 @@
 
 Newest first. Each entry says what changed, why, and where the decision is recorded.
 
+## 2026-11-14: One content file per lesson, publish only named lessons, lessons 5 to 13 drafted (built)
+
+- `npm run db:reset` now loads `supabase/seed.sql` and then every file in `supabase/content/` (`[db.seed] sql_paths` in `supabase/config.toml`). Each new lesson is its own file, so lesson changes do not collide and re-running one file does not reset the others to `draft`.
+- `supabase/publish.sql` publishes only the lessons named in its list. The committed file has an empty list and refuses to run, so publishing one checked lesson can no longer publish other unchecked drafts. It also refuses an unknown lesson ID and checks the one-correct-choice and two-choices rules only for the named lessons. Checked locally on 2026-11-13 with six rolled-back cases (empty list, typo, one lesson only, broken question, broken question in an unnamed lesson, one-choice question).
+- Lessons 5 to 13 (9 lessons, 159 questions) were drafted from the official text-only guide (dol.wa.gov, © 2025) by AI agents, then fact-checked and corrected by a second, independent AI agent per lesson. A script confirmed every quote the agents cited appears word for word in the guide. No person has checked them yet; they stay `draft` until one does.
+- Why: the per-lesson files and scoped publish were decided on 2026-11-11 (see the Lesson plan in `CLAUDE.md`); the lessons are Collins's V1 content assignment. The AI check is not the planned reviewer pipeline (no `content_reviews` table, no content hash); it was a one-off to ship the content quickly.
+- Diagrams: section 3 note in `data-flow.md` updated.
+
 ## 2026-11-08: Learning slice built: lessons, graded checks, localStorage progress (built)
 
 - Four content tables (`lessons`, `sections`, `questions`, `choices`) with RLS (published rows only) and column grants (the browser cannot read `is_correct`, `explanation` or `status`, except `questions.status`). `check_choice` is a `SECURITY DEFINER` function that grades one choice and returns right or wrong plus the explanation. Questions belong to a section (decided option A). Migration `20261108120000_learning_content.sql`.
