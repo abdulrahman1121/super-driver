@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import type { Question } from "@/lib/content";
 import { recordResult, useProgress } from "@/lib/progress";
 import { createSupabase } from "@/lib/supabase";
@@ -51,9 +51,15 @@ function QuestionCard({
   const [state, setState] = useState<State>({ phase: "idle" });
   const progress = useProgress();
   const alreadyCorrect = progress[question.id]?.correct === true;
+  const busy = useRef(false);
   const choices = shuffleChoices(question.choices, seed, question.id);
 
   async function check(choiceId: string) {
+    // Ignore clicks while a check is already running, so a double click cannot
+    // send two requests or let an older reply overwrite a newer one.
+    if (busy.current) return;
+    busy.current = true;
+
     setState({ phase: "checking", choiceId });
     try {
       const { data, error } = await createSupabase().rpc("check_choice", {
@@ -87,6 +93,9 @@ function QuestionCard({
         message:
           "We couldn't check your answer. Check your connection and try again.",
       });
+    } finally {
+      // Always release, even when the request failed, so Retry still works.
+      busy.current = false;
     }
   }
 
