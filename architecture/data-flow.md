@@ -97,7 +97,7 @@ stateDiagram-v2
   published --> draft: any edit changes the content hash
 ```
 
-**Built vs planned (2026-11-08):** the `status` column, the published-only read policy, and a human publish step (`supabase/publish.sql`, which refuses to publish a question that does not have exactly one correct choice) are built. The AI reviewer, the content hash, and the citation check are **not built**: the seeded lessons are unreviewed drafts that a human checks before publishing.
+**Built vs planned (2026-11-08, publish step updated 2026-11-14):** the `status` column, the published-only read policy, and a human publish step are built. `supabase/publish.sql` publishes only the lessons named in its list, so unchecked drafts stay hidden; it refuses an empty list, an unknown lesson ID, or a question in a named lesson that does not have exactly one correct choice. Lesson content is `supabase/seed.sql` (the first 4 lessons) plus one file per lesson in `supabase/content/`, all loaded by `db:reset`. The AI reviewer, the content hash, and the citation check are **not built** in the repo: lessons 5 to 13 were drafted and fact-checked by AI agents against the guide text in one session (2026-11-13), with their cited quotes checked by a script that is not in the repo, and a person still checks them before publishing.
 
 **Planned (2026-11-11):** content moves to one SQL file per lesson group in `supabase/content/`, and the human publish step is limited to the lessons named. Today `publish.sql` publishes every row, so one checked lesson cannot be published on its own. Not built.
 

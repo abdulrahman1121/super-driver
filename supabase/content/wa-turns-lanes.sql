@@ -1,0 +1,328 @@
+-- Lesson 6: Turns, roundabouts and special lanes (WA Driver Guide 4.14, 4.15, 4.16).
+--
+-- STATUS: UNVERIFIED DRAFT CONTENT. Drafted 2026-11-13 from the official WA
+-- Driver Guide (text-only edition, dol.wa.gov, (c) 2025) by an AI assistant and
+-- checked by a second AI reviewer only. Inserted as 'draft', so visitors cannot
+-- see it. A person must check it against the guide before it is published.
+--
+-- Idempotent: re-running updates rows by id and sets them back to 'draft'.
+-- IDs are stable; never rename them (saved progress references question IDs).
+
+-- ---------------------------------------------------------------- lessons
+insert into public.lessons (id, position, title, summary, source, status) values
+  ('wa-turns-lanes', 6, 'Turns, roundabouts and special lanes',
+   'Making turns and U-turns, driving roundabouts and diverging diamonds, and using turn lanes, HOV lanes and other special lanes.',
+   'WA Driver Guide 4.14, 4.15, 4.16', 'draft')
+on conflict (id) do update set
+  position = excluded.position, title = excluded.title, summary = excluded.summary,
+  source = excluded.source, status = 'draft';
+
+-- --------------------------------------------------------------- sections
+insert into public.sections (id, lesson_id, position, title, body, source, status) values
+  ('wa-turns-lanes-turning', 'wa-turns-lanes', 1, 'Turning at intersections',
+   E'When you turn left or right at an intersection, state law says you must turn into the lane closest to the direction you are coming from.\n\nIf there is more than one turn lane, stay in your original lane as you turn. Plan your turn so you do not drift into another lane. Once you finish the turn, you can change to another lane if you need to.\n\nBefore you turn:\n- Put on your turn signal at least 100 feet before you turn left or right across oncoming traffic.\n- Look for a safe gap in traffic.\n- Check the street you are turning onto. Make sure no vehicles, pedestrians or bicyclists are in or coming into your path.\n- Check behind you for bicyclists and yield to them. They might be moving toward you faster than you realize.\n- Be sure you have time to make the turn safely.',
+   'WA Driver Guide 4.14, Turning', 'draft'),
+  ('wa-turns-lanes-uturns', 'wa-turns-lanes', 2, 'U-turns and other intersections',
+   E'In Washington, U-turns are generally allowed unless a sign says a U-turn is not allowed. When you need to turn around, look for signs that show whether a U-turn is allowed.\n\nYou must be able to see clearly in all directions before you make a U-turn. So do not make a U-turn on a curve or when you are coming up to the crest (top) of a hill.\n\nOther kinds of intersections:\n- Cross intersection: a 4-way junction with one or more lanes going each way. It can have traffic lights, street signs or road markings. Know and apply the right-of-way laws there.\n- T-intersection: a 3-way junction where a road ends at a through road. Some have a yield or stop sign to show that passing traffic has the right-of-way.\n- Y-intersection: a minor road joins a more major road. There might be a stop sign where the minor road joins the major road. Cars on the major road have the right-of-way.\n- Mid-block crossing: a crosswalk in the middle of the road. Pedestrians always have the right-of-way in a marked crosswalk. Stop to let pedestrians and bicyclists cross, whether or not there is a stop sign.',
+   'WA Driver Guide 4.14, U-turns; Cross, T- and Y-intersections; Mid-block crossing', 'draft'),
+  ('wa-turns-lanes-circles', 'wa-turns-lanes', 3, 'Traffic calming circles and roundabouts',
+   E'A traffic calming circle is an intersection with a painted or raised center island. Traffic flows counterclockwise around it. It can have stop or yield signs on all, some or none of its approaches. Use the same right-of-way rules as at any other intersection.\n\nCalming circles are meant for passenger vehicles. Fire trucks, buses and delivery trucks may not fit easily, and they might have to go clockwise to get through. Give larger vehicles plenty of space.\n\nA roundabout is a circular intersection where all approaching vehicles yield on entry and travel counterclockwise around a raised center island. Roundabouts are designed for cars, fire trucks, buses, delivery vehicles, freight trucks, bicyclists and pedestrians.\n\n- Some roundabouts have a truck apron around the center island. Large vehicles are allowed to drive over the truck apron and use both lanes, so give them plenty of space.\n- Bicyclists can go through a roundabout as a pedestrian or as a vehicle. As a vehicle, they should ride in the middle of the lane so drivers can see them better.',
+   'WA Driver Guide 4.15, Traffic calming circles; Roundabout', 'draft'),
+  ('wa-turns-lanes-roundabouts', 'wa-turns-lanes', 4, 'Driving through a roundabout',
+   E'Follow these steps to drive through a roundabout:\n- Slow down as you approach. Roundabouts are designed for speeds between 15 and 25 mph.\n- Pick a lane as you approach. The lane choice sign shows which lanes are for right turns, going straight and left turns. Once you pick a lane, stay in it until you exit.\n- Stop for pedestrians and bicyclists in crosswalks when you enter and when you exit.\n- Look left and yield to all traffic already in the roundabout. They have the right-of-way. When you see a gap, enter and go to your exit.\n- Enter to the right and travel counterclockwise, staying in your lane.\n- Keep a safe distance behind trucks. They need a lot of space and are allowed to use both lanes.\n- Exit at the street you want.\n\nIf an emergency vehicle approaches while you are in a roundabout, drive through the roundabout and then pull over, just like you would at any other intersection.',
+   'WA Driver Guide 4.15, How to drive a roundabout', 'draft'),
+  ('wa-turns-lanes-diamonds', 'wa-turns-lanes', 5, 'Diverging diamonds',
+   E'A diverging diamond is a new type of intersection in Washington. It helps vehicles turn left onto and off of freeway ramps more efficiently.\n\nAs you approach, markings and signals guide you across to the left side of the road. Driving on the left may feel strange at first. After you cross the overpass or underpass, you are directed back to the right side.\n\nThe design removes left turns against oncoming traffic, so a left turn onto the freeway has no conflict with oncoming vehicles. That is why you can make that turn without stopping or yielding to oncoming traffic. The design also reduces the number of points where vehicles cross paths, which lowers the risk of collisions.\n\nWhat to do:\n- Pay close attention to signs and pavement markings. They guide you through the lane shift and turns.\n- Stay alert and drive at a safe speed. Even though traffic flows better, it is still important to stay aware of your surroundings.',
+   'WA Driver Guide 4.15, Diverging diamonds', 'draft'),
+  ('wa-turns-lanes-turn-lanes', 'wa-turns-lanes', 6, 'Turn lanes and shared center lanes',
+   E'Turn lanes are usually at major intersections. Signs and road markings show these lanes, and sometimes an arrow signal controls them. Once you are in a turn lane, you must follow through with the turn.\n\nSome roads have a shared center lane marked with left turn arrows. This lane is for vehicles making left turns in either direction, from or into the roadway, or U-turns where they are permitted.\n\nYou may cross the solid yellow line on your side of the road to get into the center lane. This is different from passing: do not cross a solid yellow line to pass another vehicle.\n\n- Watch traffic coming from the other direction. Those drivers can use the same center lane.\n- Do not use the center lane for passing.\n- Do not travel farther than 300 feet in the center lane.',
+   'WA Driver Guide 4.16, Turn lane; Solid yellow line on your side', 'draft'),
+  ('wa-turns-lanes-special', 'wa-turns-lanes', 7, 'HOV, reversible, reserved and toll lanes',
+   E'Some lanes are set aside for certain vehicles or special uses.\n\n- HOV (carpool) lanes are for carpools, vanpools and buses. Motorcycles may also use them. They are marked with a diamond symbol on signs and on the pavement, and a solid white line separates them from other lanes. To use one, your vehicle must meet the occupancy rule (how many people are inside) posted on the signs.\n- Reversible lanes, like express lanes, switch direction when more room is needed. They usually run on a fixed schedule for daily commutes, and they can also be switched for major events or incidents. They are usually marked by double dashed white lines. Check the overhead signs before you use one. A green arrow means you can use the lane and a red X means you cannot. A steady yellow X means the lane is changing direction, so move out of it as soon as it is safe.\n- Reserved lanes are marked by signs or pavement markings for special uses. For example, transit lanes are for buses only.\n- Express toll lanes and high occupancy toll lanes are toll-free for buses, vanpools, carpools and motorcycles. Individual drivers, such as someone driving a car alone, can choose to pay the toll to use them for a faster trip. A Good To Go! account is the best way to pay tolls in Washington.',
+   'WA Driver Guide 4.16, HOV / Carpool lane; Reversible lane; Reserved lane; Toll lane', 'draft'),
+  ('wa-turns-lanes-markings', 'wa-turns-lanes', 8, 'More lane markings',
+   E'- No markings: stay as close to the right side of the road as you safely can.\n- Shorter dashed white lines: the lane is ending. You will need to merge or exit.\n- Double solid white lines: a barrier between lanes. It is illegal to cross them.\n- Medians: they divide 2 or more roadways. A median can be an open space, a cement divider or 18-inch solid yellow pavement markings with stripes. It is illegal to drive within, over or across a median.\n- Yellow stripes: they show where you are not allowed to drive.\n- Fire lanes: usually marked with red stripes or a red curb. Do not park or stop in them.\n- Bike lanes: marked with solid white lines and bike symbols. Some have a buffer of 2 solid white lines with diagonal crosshatching in between. The buffer counts as part of the bike lane. Do not enter the buffer unless you are making a legal turn and have checked that it is safe.\n- Bicycle boxes: bicyclists wait in front of vehicles at the intersection and cross first when the light turns green. You cannot turn right on red near a bicycle box. Stay behind the white line until the box is clear.\n- Crosswalk lights: some crosswalks have lights in the pavement that crossing pedestrians turn on. You must yield when they are flashing.',
+   'WA Driver Guide 4.16, Dashed white line; No marking; Median; Double solid white line; Yellow stripes; Fire lane; Bike lane; Bicycle boxes; Crosswalks', 'draft')
+on conflict (id) do update set
+  lesson_id = excluded.lesson_id, position = excluded.position, title = excluded.title,
+  body = excluded.body, source = excluded.source, status = 'draft';
+
+-- -------------------------------------------------------------- questions
+insert into public.questions (id, section_id, position, prompt, source, status) values
+  ('wa-q-turns-closest-lane', 'wa-turns-lanes-turning', 1,
+   'You are turning left or right at an intersection. Which lane does state law say you must turn into?',
+   'WA Driver Guide 4.14, Turning', 'draft'),
+  ('wa-q-turns-two-turn-lanes', 'wa-turns-lanes-turning', 2,
+   'You are in one of two left-turn lanes side by side. How should you make the turn?',
+   'WA Driver Guide 4.14, Turning', 'draft'),
+  ('wa-q-turns-signal-distance', 'wa-turns-lanes-turning', 3,
+   'You plan to turn left across oncoming traffic. When should you turn on your turn signal?',
+   'WA Driver Guide 4.14, Turning', 'draft'),
+
+  ('wa-q-turns-uturn-sign', 'wa-turns-lanes-uturns', 1,
+   'In Washington, when are U-turns generally allowed?',
+   'WA Driver Guide 4.14, U-turns', 'draft'),
+  ('wa-q-turns-uturn-hill', 'wa-turns-lanes-uturns', 2,
+   'You want to turn around with a U-turn. Which of these places should you avoid?',
+   'WA Driver Guide 4.14, U-turns', 'draft'),
+  ('wa-q-turns-y-intersection', 'wa-turns-lanes-uturns', 3,
+   'You are on a minor road where it joins a major road at a Y-intersection. Who has the right-of-way?',
+   'WA Driver Guide 4.14, Y-intersection', 'draft'),
+
+  ('wa-q-turns-calming-rules', 'wa-turns-lanes-circles', 1,
+   'You come to a traffic calming circle, an intersection with a painted or raised center island. Which right-of-way rules apply?',
+   'WA Driver Guide 4.15, Traffic calming circles', 'draft'),
+  ('wa-q-turns-roundabout-direction', 'wa-turns-lanes-circles', 2,
+   'Which way does traffic travel around a roundabout?',
+   'WA Driver Guide 4.15, Roundabout', 'draft'),
+  ('wa-q-turns-truck-apron', 'wa-turns-lanes-circles', 3,
+   'A large truck ahead of you in a roundabout drives over the truck apron and across both lanes. What should you do?',
+   'WA Driver Guide 4.15, Roundabout; How to drive a roundabout', 'draft'),
+
+  ('wa-q-turns-roundabout-yield', 'wa-turns-lanes-roundabouts', 1,
+   'You are about to enter a roundabout. A car already in the roundabout is coming from your left. What should you do?',
+   'WA Driver Guide 4.15, How to drive a roundabout', 'draft'),
+  ('wa-q-turns-roundabout-lane', 'wa-turns-lanes-roundabouts', 2,
+   'You picked a lane as you approached a two-lane roundabout. What should you do once you are inside?',
+   'WA Driver Guide 4.15, How to drive a roundabout', 'draft'),
+  ('wa-q-turns-roundabout-emergency', 'wa-turns-lanes-roundabouts', 3,
+   'You are driving in a roundabout when an emergency vehicle approaches. What should you do?',
+   'WA Driver Guide 4.15, How to drive a roundabout', 'draft'),
+
+  ('wa-q-turns-diamond-shift', 'wa-turns-lanes-diamonds', 1,
+   'You are approaching a diverging diamond interchange. What will the signs and markings guide you to do?',
+   'WA Driver Guide 4.15, Diverging diamonds', 'draft'),
+  ('wa-q-turns-diamond-left', 'wa-turns-lanes-diamonds', 2,
+   'At a diverging diamond, why can you turn left onto the freeway without stopping or yielding to oncoming traffic?',
+   'WA Driver Guide 4.15, Diverging diamonds', 'draft'),
+
+  ('wa-q-turns-turn-lane-commit', 'wa-turns-lanes-turn-lanes', 1,
+   'You moved into a left-turn lane, then realized you wanted to go straight. What must you do?',
+   'WA Driver Guide 4.16, Turn lane', 'draft'),
+  ('wa-q-turns-center-lane-pass', 'wa-turns-lanes-turn-lanes', 2,
+   'A slow car is ahead of you on a road with a shared center left-turn lane. Can you use the center lane to pass it?',
+   'WA Driver Guide 4.16, Solid yellow line on your side', 'draft'),
+  ('wa-q-turns-center-lane-distance', 'wa-turns-lanes-turn-lanes', 3,
+   'You are using a shared center lane to make a left turn. What is the farthest you should travel in that lane?',
+   'WA Driver Guide 4.16, Solid yellow line on your side', 'draft'),
+
+  ('wa-q-turns-hov-diamond', 'wa-turns-lanes-special', 1,
+   'A freeway lane has a diamond symbol on its signs and pavement. What kind of lane is it?',
+   'WA Driver Guide 4.16, HOV / Carpool lane', 'draft'),
+  ('wa-q-turns-reversible-x', 'wa-turns-lanes-special', 2,
+   'You are driving in a reversible lane. The overhead signal shows a steady yellow X. What should you do?',
+   'WA Driver Guide 4.16, Reversible lane', 'draft'),
+  ('wa-q-turns-toll-alone', 'wa-turns-lanes-special', 3,
+   'You are driving by yourself, not in a carpool. Can you use an express toll lane?',
+   'WA Driver Guide 4.16, Toll lane', 'draft'),
+
+  ('wa-q-turns-median', 'wa-turns-lanes-markings', 1,
+   'A median divides the road you are on from another roadway. When may you drive across it?',
+   'WA Driver Guide 4.16, Median', 'draft'),
+  ('wa-q-turns-double-white', 'wa-turns-lanes-markings', 2,
+   'What do double solid white lines between two lanes mean?',
+   'WA Driver Guide 4.16, Double solid white line', 'draft'),
+  ('wa-q-turns-bike-box', 'wa-turns-lanes-markings', 3,
+   'You are stopped at a red light with a bicycle box painted in front of you. You want to turn right. What should you do?',
+   'WA Driver Guide 4.16, Bicycle boxes', 'draft')
+on conflict (id) do update set
+  section_id = excluded.section_id, position = excluded.position, prompt = excluded.prompt,
+  source = excluded.source, status = 'draft';
+
+-- ---------------------------------------------------------------- choices
+-- Exactly one is_correct per question. Every choice has an explanation.
+-- The correct answer's position varies from question to question on purpose.
+insert into public.choices (id, question_id, position, body, is_correct, explanation) values
+  ('wa-q-turns-closest-lane-a', 'wa-q-turns-closest-lane', 1, 'Whichever lane has the least traffic in it', false,
+   'Not quite. Traffic does not decide it. State law says to turn into the lane closest to the direction you are coming from.'),
+  ('wa-q-turns-closest-lane-b', 'wa-q-turns-closest-lane', 2, 'Any lane you like, as long as you signal first', false,
+   'Not quite. Signaling does not let you pick any lane. Turn into the lane closest to the direction you are coming from.'),
+  ('wa-q-turns-closest-lane-c', 'wa-q-turns-closest-lane', 3, 'The lane closest to the direction you are coming from', true,
+   'Right. Whether you turn left or right, state law says to turn into the lane closest to the direction you are coming from.'),
+  ('wa-q-turns-closest-lane-d', 'wa-q-turns-closest-lane', 4, 'The lane farthest from the direction you are coming from', false,
+   'Not quite. That is the opposite of the rule. Turn into the lane closest to the direction you are coming from.'),
+
+  ('wa-q-turns-two-turn-lanes-a', 'wa-q-turns-two-turn-lanes', 1, 'Drift into whichever lane looks more open to you', false,
+   'Not quite. Plan your turn so you do not veer into another lane. Stay in your original lane as you turn.'),
+  ('wa-q-turns-two-turn-lanes-b', 'wa-q-turns-two-turn-lanes', 2, 'Stay in your own lane all the way through the turn', true,
+   'Right. With more than one turn lane, stay in your original lane as you turn. Once the turn is done, you can change lanes if you need to.'),
+  ('wa-q-turns-two-turn-lanes-c', 'wa-q-turns-two-turn-lanes', 3, 'Swing wide into the outer lane to make the turn easier', false,
+   'Not quite. Swinging wide means veering into another lane. Stay in your original lane until the turn is done.'),
+
+  ('wa-q-turns-signal-distance-a', 'wa-q-turns-signal-distance', 1, 'Just as you start turning the wheel', false,
+   'Not quite. That is too late. Put on your signal at least 100 feet before you turn.'),
+  ('wa-q-turns-signal-distance-b', 'wa-q-turns-signal-distance', 2, 'At least 20 feet before you turn', false,
+   'Not quite. 20 feet is too short. Put on your signal at least 100 feet before you turn.'),
+  ('wa-q-turns-signal-distance-c', 'wa-q-turns-signal-distance', 3, 'At least 50 feet before you turn', false,
+   'Not quite. 50 feet is not enough. Put on your signal at least 100 feet before you turn.'),
+  ('wa-q-turns-signal-distance-d', 'wa-q-turns-signal-distance', 4, 'At least 100 feet before you turn', true,
+   'Right. When you turn left or right across oncoming traffic, put on your signal at least 100 feet before you turn. Then look for a safe gap in traffic.'),
+
+  ('wa-q-turns-uturn-sign-a', 'wa-q-turns-uturn-sign', 1, 'Unless a sign says U-turns are not allowed', true,
+   'Right. U-turns are generally allowed unless a sign says they are not. You still need a clear view in all directions.'),
+  ('wa-q-turns-uturn-sign-b', 'wa-q-turns-uturn-sign', 2, 'Only where a sign says U-turns are allowed', false,
+   'Not quite. It is the other way around. U-turns are generally allowed unless a sign says they are not.'),
+  ('wa-q-turns-uturn-sign-c', 'wa-q-turns-uturn-sign', 3, 'Only at intersections with a traffic light', false,
+   'Not quite. U-turns are not limited to traffic lights. They are generally allowed unless a sign says they are not.'),
+
+  ('wa-q-turns-uturn-hill-a', 'wa-q-turns-uturn-hill', 1, 'A straight road with a clear view both ways', false,
+   'Not quite. A clear view in all directions is what a U-turn needs. The places to avoid are curves and the crest of a hill.'),
+  ('wa-q-turns-uturn-hill-b', 'wa-q-turns-uturn-hill', 2, 'On a curve or near the top of a hill', true,
+   'Right. You must have a clear view in all directions, so do not make a U-turn on a curve or when approaching the crest of a hill.'),
+  ('wa-q-turns-uturn-hill-c', 'wa-q-turns-uturn-hill', 3, 'A quiet street with no U-turn signs', false,
+   'Not quite. With no sign saying otherwise, U-turns are generally allowed in Washington. Curves and hilltops are the places to avoid.'),
+  ('wa-q-turns-uturn-hill-d', 'wa-q-turns-uturn-hill', 4, 'A wide road with very little traffic', false,
+   'Not quite. Light traffic is not the problem. Avoid curves and the crest of a hill, where you cannot see clearly in all directions.'),
+
+  ('wa-q-turns-y-intersection-a', 'wa-q-turns-y-intersection', 1, 'Whoever reaches the junction first', false,
+   'Not quite. Arrival order does not decide it here. At a Y-intersection, cars on the major road have the right-of-way.'),
+  ('wa-q-turns-y-intersection-b', 'wa-q-turns-y-intersection', 2, 'You, because you are on the minor road', false,
+   'Not quite. Being on the minor road does not give you the right-of-way. Cars on the major road have it.'),
+  ('wa-q-turns-y-intersection-c', 'wa-q-turns-y-intersection', 3, 'Whichever car is on the right', false,
+   'Not quite. Which side a car is on does not decide it here. Cars on the major road have the right-of-way.'),
+  ('wa-q-turns-y-intersection-d', 'wa-q-turns-y-intersection', 4, 'Cars on the major road', true,
+   'Right. At a Y-intersection, cars on the major road have the right-of-way. There might also be a stop sign where the minor road joins.'),
+
+  ('wa-q-turns-calming-rules-a', 'wa-q-turns-calming-rules', 1, 'The same rules as at any other intersection', true,
+   'Right. Apply the same right-of-way rules as at any other intersection, and obey any stop or yield signs it has.'),
+  ('wa-q-turns-calming-rules-b', 'wa-q-turns-calming-rules', 2, 'Larger vehicles always go first, since they need room', false,
+   'Not quite. Size does not give the right-of-way. Use the normal rules, and give larger vehicles plenty of space.'),
+  ('wa-q-turns-calming-rules-c', 'wa-q-turns-calming-rules', 3, 'Cars coming from the left always go first', false,
+   'Not quite. There is no special left-first rule. Use the same right-of-way rules as at any other intersection.'),
+  ('wa-q-turns-calming-rules-d', 'wa-q-turns-calming-rules', 4, 'No rules apply if there are no signs', false,
+   'Not quite. Some calming circles have no signs, but you still apply the same right-of-way rules as at any other intersection.'),
+
+  ('wa-q-turns-roundabout-direction-a', 'wa-q-turns-roundabout-direction', 1, 'Clockwise around the center island', false,
+   'Not quite. Traffic in a roundabout travels counterclockwise. You enter to the right.'),
+  ('wa-q-turns-roundabout-direction-b', 'wa-q-turns-roundabout-direction', 2, 'Whichever way gets you to your exit sooner', false,
+   'Not quite. All vehicles travel counterclockwise around the center island, wherever they plan to exit.'),
+  ('wa-q-turns-roundabout-direction-c', 'wa-q-turns-roundabout-direction', 3, 'Counterclockwise around the center island', true,
+   'Right. All vehicles travel counterclockwise around the raised center island. You enter to the right.'),
+
+  ('wa-q-turns-truck-apron-a', 'wa-q-turns-truck-apron', 1, 'Pass it on the right while it is up on the apron', false,
+   'Not quite. Large vehicles are allowed to use the truck apron and both lanes. Give them plenty of space instead.'),
+  ('wa-q-turns-truck-apron-b', 'wa-q-turns-truck-apron', 2, 'Give it plenty of space, since this is allowed', true,
+   'Right. Large vehicles are allowed to cross truck aprons and both lanes. Keep a safe distance behind them.'),
+  ('wa-q-turns-truck-apron-c', 'wa-q-turns-truck-apron', 3, 'Honk, because trucks must stay in one lane', false,
+   'Not quite. Trucks are allowed to use both lanes in a roundabout. Give them plenty of space.'),
+  ('wa-q-turns-truck-apron-d', 'wa-q-turns-truck-apron', 4, 'Follow close behind so you exit together', false,
+   'Not quite. Trucks need a lot of space. Keep a safe distance behind them.'),
+
+  ('wa-q-turns-roundabout-yield-a', 'wa-q-turns-roundabout-yield', 1, 'Enter first, since the car is on your left', false,
+   'Not quite. Traffic already in the roundabout has the right-of-way. Look left and yield before you enter.'),
+  ('wa-q-turns-roundabout-yield-b', 'wa-q-turns-roundabout-yield', 2, 'Speed up to get in ahead of it', false,
+   'Not quite. Slow down as you approach, and yield to all traffic already in the roundabout.'),
+  ('wa-q-turns-roundabout-yield-c', 'wa-q-turns-roundabout-yield', 3, 'Enter, then stop in the circle to let it pass', false,
+   'Not quite. All approaching vehicles yield on entry. Wait for a gap, then enter and go to your exit.'),
+  ('wa-q-turns-roundabout-yield-d', 'wa-q-turns-roundabout-yield', 4, 'Yield to it, then enter when there is a gap', true,
+   'Right. Look left and yield to all traffic already in the roundabout. When you see a gap, enter and go to your exit.'),
+
+  ('wa-q-turns-roundabout-lane-a', 'wa-q-turns-roundabout-lane', 1, 'Move to the other lane if it looks faster', false,
+   'Not quite. Once you pick a lane, stay in it until you exit the roundabout.'),
+  ('wa-q-turns-roundabout-lane-b', 'wa-q-turns-roundabout-lane', 2, 'Change lanes when you get close to your exit', false,
+   'Not quite. Pick your lane as you approach, using the lane choice sign, then stay in it until you exit.'),
+  ('wa-q-turns-roundabout-lane-c', 'wa-q-turns-roundabout-lane', 3, 'Stay in that lane until you exit', true,
+   'Right. Use the lane choice sign to pick your lane as you approach, then stay in that lane until you exit.'),
+
+  ('wa-q-turns-roundabout-emergency-a', 'wa-q-turns-roundabout-emergency', 1, 'Stop right where you are in the circle', false,
+   'Not quite. The guide says to drive through the roundabout and pull over, just like at any other intersection.'),
+  ('wa-q-turns-roundabout-emergency-b', 'wa-q-turns-roundabout-emergency', 2, 'Drive through the roundabout and pull over', true,
+   'Right. Drive through the roundabout and pull over, just like you would at any other intersection.'),
+  ('wa-q-turns-roundabout-emergency-c', 'wa-q-turns-roundabout-emergency', 3, 'Keep circling until the vehicle is gone', false,
+   'Not quite. Drive through the roundabout and pull over, just like you would at any other intersection.'),
+  ('wa-q-turns-roundabout-emergency-d', 'wa-q-turns-roundabout-emergency', 4, 'Back up to where you entered the circle', false,
+   'Not quite. Backing up is not the answer. Drive through the roundabout and pull over, just like at any other intersection.'),
+
+  ('wa-q-turns-diamond-shift-a', 'wa-q-turns-diamond-shift', 1, 'Stay on the right side the whole way through', false,
+   'Not quite. In a diverging diamond, you cross over to the left side of the road, then back to the right after the overpass or underpass.'),
+  ('wa-q-turns-diamond-shift-b', 'wa-q-turns-diamond-shift', 2, 'Stop and wait for all oncoming traffic to pass', false,
+   'Not quite. The design removes left turns against oncoming traffic. Follow the signs and markings across to the left side.'),
+  ('wa-q-turns-diamond-shift-c', 'wa-q-turns-diamond-shift', 3, 'Cross over to the left side of the road', true,
+   'Right. You cross to the left side of the road, and after the overpass or underpass you cross back to the right.'),
+  ('wa-q-turns-diamond-shift-d', 'wa-q-turns-diamond-shift', 4, 'Make a U-turn to reach the freeway ramp', false,
+   'Not quite. No U-turn is needed. Signs and markings guide you across to the left side of the road and back.'),
+
+  ('wa-q-turns-diamond-left-a', 'wa-q-turns-diamond-left', 1, 'The design removes left turns against oncoming traffic', true,
+   'Right. The design removes left turns against oncoming traffic, so this turn has no conflict with oncoming vehicles. Still follow the signs and markings, and stay aware of your surroundings.'),
+  ('wa-q-turns-diamond-left-b', 'wa-q-turns-diamond-left', 2, 'The roads there carry traffic in one direction only', false,
+   'Not quite. Traffic there does go both ways, and you even drive on the left side of the road for a while. It works because the design removes left turns against oncoming traffic.'),
+  ('wa-q-turns-diamond-left-c', 'wa-q-turns-diamond-left', 3, 'Drivers turning left always have the right-of-way', false,
+   'Not quite. Turning left does not give you the right-of-way. It works because the design removes left turns against oncoming traffic.'),
+
+  ('wa-q-turns-turn-lane-commit-a', 'wa-q-turns-turn-lane-commit', 1, 'Go straight from the turn lane if it is clear', false,
+   'Not quite. Once you are in a turn lane, you must follow through with the turn.'),
+  ('wa-q-turns-turn-lane-commit-b', 'wa-q-turns-turn-lane-commit', 2, 'Follow through and make the turn', true,
+   'Right. Once you are in a turn lane, you must follow through with the turn.'),
+  ('wa-q-turns-turn-lane-commit-c', 'wa-q-turns-turn-lane-commit', 3, 'Stop and wait to move back into your lane', false,
+   'Not quite. Moving back out breaks the rule. Once you are in a turn lane, you must follow through with the turn.'),
+
+  ('wa-q-turns-center-lane-pass-a', 'wa-q-turns-center-lane-pass', 1, 'Yes, as long as no one else is in the center lane', false,
+   'Not quite. Shared center lanes must not be used for passing, even when they are empty.'),
+  ('wa-q-turns-center-lane-pass-b', 'wa-q-turns-center-lane-pass', 2, 'Yes, if you signal before you move over', false,
+   'Not quite. Signaling does not change the rule. Shared center lanes must not be used for passing.'),
+  ('wa-q-turns-center-lane-pass-c', 'wa-q-turns-center-lane-pass', 3, 'No, these lanes must not be used for passing', true,
+   'Right. Shared center lanes are for left turns, and U-turns where they are permitted. They must not be used for passing, and you must not cross a solid yellow line to pass.'),
+  ('wa-q-turns-center-lane-pass-d', 'wa-q-turns-center-lane-pass', 4, 'Yes, as long as you stay under 300 feet', false,
+   'Not quite. The 300-foot limit does not make passing OK. Shared center lanes must not be used for passing.'),
+
+  ('wa-q-turns-center-lane-distance-a', 'wa-q-turns-center-lane-distance', 1, '300 feet', true,
+   'Right. You should not travel farther than 300 feet in a center lane.'),
+  ('wa-q-turns-center-lane-distance-b', 'wa-q-turns-center-lane-distance', 2, '100 feet', false,
+   'Not quite. The limit in the guide is 300 feet, not 100 feet.'),
+  ('wa-q-turns-center-lane-distance-c', 'wa-q-turns-center-lane-distance', 3, '500 feet', false,
+   'Not quite. That is too far. You should not travel farther than 300 feet in a center lane.'),
+  ('wa-q-turns-center-lane-distance-d', 'wa-q-turns-center-lane-distance', 4, '1,000 feet', false,
+   'Not quite. That is much too far. The limit is 300 feet.'),
+
+  ('wa-q-turns-hov-diamond-a', 'wa-q-turns-hov-diamond', 1, 'A passing lane for drivers who want to go faster', false,
+   'Not quite. The diamond symbol marks an HOV lane, which is reserved for carpools, vanpools and buses.'),
+  ('wa-q-turns-hov-diamond-b', 'wa-q-turns-hov-diamond', 2, 'A lane for large trucks and delivery vans only', false,
+   'Not quite. The diamond marks an HOV lane for carpools, vanpools and buses. Motorcycles may use it too.'),
+  ('wa-q-turns-hov-diamond-c', 'wa-q-turns-hov-diamond', 3, 'A lane that is ending soon, so you must merge', false,
+   'Not quite. Shorter dashed white lines show that a lane is ending. The diamond marks an HOV lane.'),
+  ('wa-q-turns-hov-diamond-d', 'wa-q-turns-hov-diamond', 4, 'An HOV lane for carpools, vanpools and buses', true,
+   'Right. HOV lanes are marked with a diamond. Your vehicle must meet the occupancy rule posted on the signs, and motorcycles may use them too.'),
+
+  ('wa-q-turns-reversible-x-a', 'wa-q-turns-reversible-x', 1, 'Keep going, since yellow only means use care', false,
+   'Not quite. A steady yellow X means the lane is changing direction. Move out of it as soon as it is safe.'),
+  ('wa-q-turns-reversible-x-b', 'wa-q-turns-reversible-x', 2, 'Move out of the lane as soon as it is safe', true,
+   'Right. A steady yellow X means the lane is changing direction, so move out of it as soon as it is safe.'),
+  ('wa-q-turns-reversible-x-c', 'wa-q-turns-reversible-x', 3, 'Stop in the lane until a green arrow shows', false,
+   'Not quite. The lane is changing direction. The guide says to move out of it as soon as it is safe.'),
+  ('wa-q-turns-reversible-x-d', 'wa-q-turns-reversible-x', 4, 'Speed up to finish before the lane changes', false,
+   'Not quite. Speeding up is not the answer. Move out of the lane as soon as it is safe.'),
+
+  ('wa-q-turns-toll-alone-a', 'wa-q-turns-toll-alone', 1, 'No, these lanes are only for carpools and buses', false,
+   'Not quite. Individual drivers can choose to pay the toll to use these lanes for a faster trip.'),
+  ('wa-q-turns-toll-alone-b', 'wa-q-turns-toll-alone', 2, 'Yes, and it is free for everyone', false,
+   'Not quite. The trip is toll-free for buses, vanpools, carpools and motorcycles. Individual drivers pay the toll to use the lane.'),
+  ('wa-q-turns-toll-alone-c', 'wa-q-turns-toll-alone', 3, 'Yes, if you choose to pay the toll', true,
+   'Right. Express toll lanes give individual drivers the option to pay the toll for a faster trip. A Good To Go! account is the best way to pay.'),
+
+  ('wa-q-turns-median-a', 'wa-q-turns-median', 1, 'When no traffic is coming from either direction', false,
+   'Not quite. It is illegal to drive within, over or across a median, even when the road is clear.'),
+  ('wa-q-turns-median-b', 'wa-q-turns-median', 2, 'When it is only painted yellow stripes', false,
+   'Not quite. A median can be 18-inch solid yellow pavement markings with stripes, and it is still illegal to drive across it.'),
+  ('wa-q-turns-median-c', 'wa-q-turns-median', 3, 'Never, because crossing a median is illegal', true,
+   'Right. A median can be an open space, a cement divider or painted yellow markings. It is illegal to drive within, over or across it.'),
+
+  ('wa-q-turns-double-white-a', 'wa-q-turns-double-white', 1, 'You may cross them when it is safe', false,
+   'Not quite. That describes a dashed white line between lanes. Double solid white lines are a barrier you may not cross.'),
+  ('wa-q-turns-double-white-b', 'wa-q-turns-double-white', 2, 'Traffic on each side is going in opposite directions', false,
+   'Not quite. White lines separate lanes going the same direction. Yellow lines separate traffic going opposite directions.'),
+  ('wa-q-turns-double-white-c', 'wa-q-turns-double-white', 3, 'The lane on your side is about to end', false,
+   'Not quite. Shorter dashed white lines show that a lane is ending. Double solid white lines are a barrier.'),
+  ('wa-q-turns-double-white-d', 'wa-q-turns-double-white', 4, 'They are a barrier, and crossing is illegal', true,
+   'Right. Double solid white lines are a barrier between lanes. It is illegal to cross them.'),
+
+  ('wa-q-turns-bike-box-a', 'wa-q-turns-bike-box', 1, 'Stay behind the white line and do not turn right on red', true,
+   'Right. You cannot turn right on red near a bicycle box. Stay behind the white line until the box is clear.'),
+  ('wa-q-turns-bike-box-b', 'wa-q-turns-bike-box', 2, 'Turn right on red after you come to a complete stop', false,
+   'Not quite. You cannot turn right on red near a bicycle box. Stay behind the white line.'),
+  ('wa-q-turns-bike-box-c', 'wa-q-turns-bike-box', 3, 'Pull forward into the box so you can see the traffic better', false,
+   'Not quite. The box is where bicyclists wait in front of vehicles. Stay behind the white line until it is clear.'),
+  ('wa-q-turns-bike-box-d', 'wa-q-turns-bike-box', 4, 'Honk so the bicyclists move out of the box for you', false,
+   'Not quite. Bicyclists wait in the box and cross first when the light turns green. Stay behind the white line until the box is clear.')
+on conflict (id) do update set
+  question_id = excluded.question_id, position = excluded.position, body = excluded.body,
+  is_correct = excluded.is_correct, explanation = excluded.explanation;
