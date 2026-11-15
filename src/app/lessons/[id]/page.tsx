@@ -24,7 +24,7 @@ export default async function LessonPage({
       <nav aria-label="Breadcrumb" className="text-sm">
         <Link
           href="/#lessons"
-          className="font-semibold text-indigo-800 hover:underline"
+          className="inline-flex min-h-11 items-center font-semibold text-indigo-800 hover:underline"
         >
           ← All lessons
         </Link>

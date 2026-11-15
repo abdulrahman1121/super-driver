@@ -2,6 +2,14 @@
 
 Newest first. Each entry says what changed, why, and where the decision is recorded.
 
+## 2026-11-15: Choices shuffled in the browser on every lesson visit (built)
+
+- Each question's choices are shuffled in the browser with a new random seed every time the lesson is entered (also on client-side navigation), not again on "Try again". The choices are hidden until the seed is ready, so nothing jumps, and a repeat-click guard ignores clicks while an answer is being checked.
+- Why: every correct answer in lessons 1 to 4 was the first choice, so picking the first option always won. The shuffle fixes that for every lesson and any stored order.
+- Not changed: grading still goes by choice id through `check_choice`, and the hosted database was not patched, so hosted lessons 1 to 4 still store the correct answer first (debt #16). In `seed.sql` the correct answers of lessons 1 to 4 are now spread across positions, which only affects databases built from scratch.
+- Verified on a production build in a scratch copy and in a real browser: different orders on every load and on re-entry, a stable order through answers and "Try again", one request per double click, and Retry working after a forced network failure.
+- Decisions log: see the 2026-11-15 rows in `CLAUDE.md`. Diagrams: section 9 of `data-flow.md`.
+
 ## 2026-11-14: One content file per lesson, publish only named lessons, lessons 5 to 13 drafted (built)
 
 - `npm run db:reset` now loads `supabase/seed.sql` and then every file in `supabase/content/` (`[db.seed] sql_paths` in `supabase/config.toml`). Each new lesson is its own file, so lesson changes do not collide and re-running one file does not reset the others to `draft`.
