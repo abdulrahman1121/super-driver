@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import type { Question } from "@/lib/content";
 import { recordResult, useProgress } from "@/lib/progress";
 import { createSupabase } from "@/lib/supabase";
+import { shuffleChoices } from "@/lib/shuffle";
 
 // One skill check. The browser never holds the answer: choosing a choice calls
 // the database function check_choice, which returns whether it was right and
@@ -16,16 +17,41 @@ type State =
   | { phase: "done"; choiceId: string; correct: boolean; explanation: string }
   | { phase: "error"; choiceId: string; message: string };
 
+// One random number per visit to the lesson (per mount of <Quiz>). On the server
+// and during hydration it is 0, which means "not ready": the choices render in
+// their stored order but stay hidden. As soon as the browser has it, the real
+// seed is used and the shuffled choices appear. Entering the lesson again, even
+// by client-side navigation, mounts <Quiz> again and so gets a new seed.
+function useShuffleSeed(): number {
+  const [store] = useState(() => {
+    let seed = 0;
+    return {
+      subscribe: () => () => {},
+      getSnapshot: () =>
+        (seed = seed || Math.floor(Math.random() * 2 ** 31) + 1),
+      getServerSnapshot: () => 0,
+    };
+  });
+  return useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getServerSnapshot,
+  );
+}
+
 function QuestionCard({
   question,
   number,
+  seed,
 }: {
   question: Question;
   number: number;
+  seed: number;
 }) {
   const [state, setState] = useState<State>({ phase: "idle" });
   const progress = useProgress();
   const alreadyCorrect = progress[question.id]?.correct === true;
+  const choices = shuffleChoices(question.choices, seed, question.id);
 
   async function check(choiceId: string) {
     setState({ phase: "checking", choiceId });
@@ -85,8 +111,8 @@ function QuestionCard({
         {question.prompt}
       </p>
 
-      <ul className="mt-4 space-y-2.5">
-        {question.choices.map((choice) => {
+      <ul className={`mt-4 space-y-2.5 ${seed === 0 ? "invisible" : ""}`}>
+        {choices.map((choice) => {
           const isSelected = selectedId === choice.id;
           const tone =
             isSelected && state.phase === "done"
@@ -173,10 +199,11 @@ function QuestionCard({
 }
 
 export function Quiz({ questions }: { questions: Question[] }) {
+  const seed = useShuffleSeed();
   return (
     <div className="mt-6 space-y-4">
       {questions.map((q, i) => (
-        <QuestionCard key={q.id} question={q} number={i + 1} />
+        <QuestionCard key={q.id} question={q} number={i + 1} seed={seed} />
       ))}
     </div>
   );
