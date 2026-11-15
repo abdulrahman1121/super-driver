@@ -84,7 +84,7 @@ Handoff document for AI agents and anyone picking up this project. Read this ful
 - **Verification:** the AI reviewer checks the written explanation against the Driver Guide but cannot see the picture, so Abdulrahman checks the rendered scene next to its description before approving.
 
 ## V1 scope
-- [ ] All WA Driver Guide content and driving laws as lessons (owner: Collins; 4 of the lessons are drafted and live, the rest are not started)
+- [ ] All WA Driver Guide content and driving laws as lessons (owner: Collins; 4 lessons are live; lessons 5 to 13 (159 questions) are drafted in `supabase/content/`, AI-drafted and AI-fact-checked against the guide on 2026-11-13, and wait for a person's check before publishing)
 - [ ] Lessons with embedded checks ("check your understanding") (owner: Collins for the remaining content; the mechanism is built and live)
 - [ ] Scenario puzzles (owner: Abdulrahman) (static or lightly animated intersections: right-of-way, four-way stops, school zones)
 - [ ] Timed practice knowledge test (40 questions, 80% pass)
@@ -210,7 +210,7 @@ Not verified, gaps:
 ## Commands
 - `npm ci`: install exactly what the lockfile says (use this after cloning). `nvm use` first.
 - `npm run dev` / `build` / `start`: Next.js. **Open http://localhost:3000, not the machine's LAN IP.** On the LAN address `next dev` blocks its client, so the page renders but never hydrates (buttons do nothing, reproduced), and the app's `127.0.0.1` Supabase URL would not be reachable anyway. Needs `.env.local` (see `.env.example`; values from `npm run db:status`).
-- Seed content: `npm run db:reset` loads `supabase/seed.sql` (drafts). To publish after checking the content: `docker exec -i supabase_db_SuperDriver psql -U postgres -v ON_ERROR_STOP=1 < supabase/publish.sql`.
+- Seed content: `npm run db:reset` loads `supabase/seed.sql` and then every file in `supabase/content/` (one file per lesson), all as drafts. To publish lessons after they have been checked, name them; never edit `publish.sql` itself (with its list empty it refuses and publishes nothing). Local, in Git Bash: `sed "s/array\[\]::text\[\]/array['wa-traffic-signs','wa-hazards']/" supabase/publish.sql | docker exec -i supabase_db_SuperDriver psql -U postgres -v ON_ERROR_STOP=1`. Hosted: paste `publish.sql` into the Supabase SQL editor and fill in the list there. It publishes only the named lessons and refuses an unknown lesson ID or a question without exactly one correct choice.
 - `npm run lint`, `npm run format`, `npm run format:check`.
 - `npm run db:start` / `db:stop` / `db:status` / `db:reset` / `db:types`: Supabase CLI wrappers (need Docker running).
 - `npm run db:test`: runs the pgTAP tests in `supabase/tests/database/`, including the security guard (needs the local stack running; the first run pulls the `pg_prove` image).
