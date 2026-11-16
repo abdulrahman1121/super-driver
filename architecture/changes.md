@@ -2,6 +2,14 @@
 
 Newest first. Each entry says what changed, why, and where the decision is recorded.
 
+## 2026-11-15: Every lesson in its own file, `seed.sql` removed (built)
+
+- Lessons 1 to 4 moved out of `supabase/seed.sql` into `supabase/content/` (one file per lesson, named after the lesson ID), `seed.sql` was deleted, and `[db.seed] sql_paths` in `supabase/config.toml` now loads only `./content/*.sql`. A content fingerprint query (`supabase/tools/content-fingerprint.sql`) was added to prove that moves like this change no data.
+- Why: the first four lessons should follow the same layout as lessons 5 to 13, so lesson PRs do not collide and there is no special case.
+- Verified: the fingerprint is identical before and after the split (903 rows), on throwaway databases and on a real `db:reset`; the 22 database tests pass; the fingerprint notices a changed character, a changed position, a flipped answer flag and a missing row, and ignores publish status.
+- Data flow: unchanged. Only the source files of the content moved. Hosted still has lessons 1 to 4 in the old stored order (debt #16), and pasting a file for an already-published lesson into the hosted editor unpublishes it.
+- Decisions log: see the 2026-11-15 rows in `CLAUDE.md`.
+
 ## 2026-11-15: Choices shuffled in the browser on every lesson visit (built)
 
 - Each question's choices are shuffled in the browser with a new random seed every time the lesson is entered (also on client-side navigation), not again on "Try again". The choices are hidden until the seed is ready, so nothing jumps, and a repeat-click guard ignores clicks while an answer is being checked.
